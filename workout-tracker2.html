@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>12-Week 5x5 Workout Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .header h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .controls {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .week-selector {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+        
+        .week-btn {
+            padding: 10px 20px;
+            border: 2px solid #ddd;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .week-btn:hover {
+            background: #f0f0f0;
+        }
+        
+        .week-btn.active {
+            background: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+        }
+        
+        .week-btn.deload {
+            background: #fef3c7;
+            border-color: #fbbf24;
+        }
+        
+        .week-btn.deload.active {
+            background: #fbbf24;
+            color: #78350f;
+        }
+        
+        .alert {
+            background: #dbeafe;
+            border-left: 4px solid #3b82f6;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .alert-warning {
+            background: #fef3c7;
+            border-left-color: #f59e0b;
+        }
+        
+        .alert h3 {
+            margin-bottom: 10px;
+            color: #1e40af;
+        }
+        
+        .alert-warning h3 {
+            color: #92400e;
+        }
+        
+        .alert ul {
+            margin-left: 20px;
+        }
+        
+        .workout-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .day-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+        
+        .day-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        
+        .day-card.selected {
+            border-color: #3b82f6;
+            background: #eff6ff;
+        }
+        
+        .day-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .day-header h3 {
+            color: #333;
+        }
+        
+        .progress-bar {
+            background: #e5e7eb;
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+        
+        .progress-fill {
+            background: #10b981;
+            height: 100%;
+            transition: width 0.3s;
+        }
+        
+        .workout-detail {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-top: 20px;
+        }
+        
+        .exercise-card {
+            background: #f9fafb;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+        
+        .exercise-card.complete {
+            background: #d1fae5;
+            border-color: #10b981;
+        }
+        
+        .exercise-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 10px;
+        }
+        
+        .exercise-name {
+            font-weight: 600;
+            font-size: 1.1em;
+            color: #333;
+        }
+        
+        .exercise-notes {
+            color: #6b7280;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+        
+        .exercise-stats {
+            display: flex;
+            gap: 20px;
+            margin: 15px 0;
+            font-weight: 600;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .stat-label {
+            color: #6b7280;
+            font-size: 0.9em;
+        }
+        
+        .weight-display {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .weight-badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+        
+        .weight-badge.increase {
+            background: #dcfce7;
+            color: #166534;
+        }
+        
+        .weight-badge.same {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .weight-badge.deload {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        
+        .set-buttons {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+            margin-top: 15px;
+        }
+        
+        .set-btn {
+            padding: 12px;
+            border: 2px solid #d1d5db;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        
+        .set-btn:hover {
+            background: #f3f4f6;
+        }
+        
+        .set-btn.complete {
+            background: #10b981;
+            color: white;
+            border-color: #10b981;
+        }
+        
+        .set-btn.failed {
+            background: #ef4444;
+            color: white;
+            border-color: #ef4444;
+        }
+        
+        .completion-status {
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: 6px;
+            font-weight: 600;
+            text-align: center;
+        }
+        
+        .completion-status.success {
+            background: #dcfce7;
+            color: #166534;
+            border: 2px solid #10b981;
+        }
+        
+        .completion-status.incomplete {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 2px solid #ef4444;
+        }
+        
+        .completion-status.pending {
+            background: #fef3c7;
+            color: #92400e;
+            border: 2px solid #fbbf24;
+        }
+        
+        .export-section {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-top: 20px;
+            text-align: center;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 5px;
+            transition: all 0.3s;
+        }
+        
+        .btn:hover {
+            background: #2563eb;
+        }
+        
+        .btn-secondary {
+            background: #6b7280;
+        }
+        
+        .btn-secondary:hover {
+            background: #4b5563;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        @media print {
+            body {
+                background: white;
+            }
+            .controls, .export-section, .set-btn {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>12-Week 5x5 Dumbbell Program</h1>
+            <p>Building strength and muscle at home - Track your progress below</p>
+        </div>
+        
+        <div class="controls">
+            <h2>Select Week</h2>
+            <div class="week-selector" id="weekSelector"></div>
+        </div>
+        
+        <div class="alert" id="weekAlert"></div>
+        
+        <div class="alert alert-warning">
+            <h3>How Weight Progression Works</h3>
+            <ul>
+                <li><strong>Mark each set as Complete (✓)</strong> when you finish all reps with good form</li>
+                <li><strong>Complete all 5x5?</strong> Next week's weight automatically increases by 5 lbs</li>
+                <li><strong>Failed any sets?</strong> Next week stays at the same weight until you succeed</li>
+                <li>Every 4th week is an automatic deload (70% weight)</li>
+                <li>Rest 90-120 seconds between sets</li>
+            </ul>
+        </div>
+        
+        <div class="workout-grid" id="workoutGrid"></div>
+        
+        <div id="workoutDetail" class="hidden"></div>
+        
+        <div class="export-section">
+            <h3>Export Your Data</h3>
+            <p style="margin: 10px 0;">Save your progress or print your workout plan</p>
+            <button class="btn" onclick="exportToCSV()">Download as CSV</button>
+            <button class="btn btn-secondary" onclick="window.print()">Print Workout</button>
+            <button class="btn btn-secondary" onclick="resetData()">Reset All Progress</button>
+        </div>
+    </div>
+
+    <script>
+        var program = {
+            1: {
+                name: "Upper Body Push",
+                exercises: [
+                    { name: "Incline Dumbbell Press", sets: 5, reps: 5, startWeight: 25, notes: "Focus on upper chest" },
+                    { name: "Standing Overhead Press", sets: 5, reps: 5, startWeight: 20, notes: "Strict form" },
+                    { name: "Dumbbell Floor Press", sets: 5, reps: 5, startWeight: 30, notes: "Protect shoulders" },
+                    { name: "Lateral Raises", sets: 3, reps: 12, startWeight: 10, notes: "Slight bend in elbow" },
+                    { name: "Overhead Tricep Extension", sets: 3, reps: 10, startWeight: 20, notes: "Both arms, one DB" }
+                ]
+            },
+            2: {
+                name: "Lower Body",
+                exercises: [
+                    { name: "Goblet Squats", sets: 5, reps: 5, startWeight: 40, notes: "Hold one DB at chest" },
+                    { name: "Romanian Deadlifts", sets: 5, reps: 5, startWeight: 30, notes: "Each hand, hinge at hips" },
+                    { name: "Bulgarian Split Squats", sets: 4, reps: 8, startWeight: 20, notes: "Each leg" },
+                    { name: "Dumbbell Lunges", sets: 3, reps: 10, startWeight: 20, notes: "Each leg, walking" },
+                    { name: "Calf Raises", sets: 3, reps: 15, startWeight: 30, notes: "On step, hold DBs" }
+                ]
+            },
+            3: {
+                name: "Cardio & Core",
+                exercises: [
+                    { name: "Treadmill Jog/Walk Intervals", sets: 1, reps: 20, startWeight: 0, notes: "20 min: 2 min jog, 1 min walk" },
+                    { name: "Plank", sets: 3, reps: 1, startWeight: 0, notes: "Hold 30-60 seconds" },
+                    { name: "Russian Twists", sets: 3, reps: 20, startWeight: 15, notes: "Hold one DB" },
+                    { name: "Dumbbell Side Bends", sets: 3, reps: 15, startWeight: 25, notes: "Each side" },
+                    { name: "Lying Leg Raises", sets: 3, reps: 12, startWeight: 0, notes: "Slow and controlled" }
+                ]
+            },
+            4: {
+                name: "Upper Body Pull",
+                exercises: [
+                    { name: "Bent Over Dumbbell Rows", sets: 5, reps: 5, startWeight: 35, notes: "Pull to hip, each arm" },
+                    { name: "Single Arm Row", sets: 4, reps: 8, startWeight: 40, notes: "Each arm, on bench" },
+                    { name: "Dumbbell Pullover", sets: 4, reps: 10, startWeight: 30, notes: "Chest/back combo" },
+                    { name: "Hammer Curls", sets: 4, reps: 10, startWeight: 20, notes: "Palms facing each other" },
+                    { name: "Reverse Flyes", sets: 3, reps: 12, startWeight: 12, notes: "Rear delts" }
+                ]
+            },
+            5: {
+                name: "Full Body & Cardio",
+                exercises: [
+                    { name: "Dumbbell Clean and Press", sets: 4, reps: 8, startWeight: 25, notes: "Explosive, full body" },
+                    { name: "Goblet Squats", sets: 4, reps: 8, startWeight: 40, notes: "Same as Day 2" },
+                    { name: "Push-ups", sets: 3, reps: 15, startWeight: 0, notes: "On knees if needed" },
+                    { name: "Dumbbell Swings", sets: 3, reps: 15, startWeight: 30, notes: "Hip drive, one DB" },
+                    { name: "Treadmill Intervals", sets: 1, reps: 15, startWeight: 0, notes: "15 min: 1 min fast, 1 min slow" }
+                ]
+            }
+        };
+
+        var currentWeek = 1;
+        var selectedDay = null;
+
+        function getWeekType(week) {
+            return week % 4 === 0 ? "deload" : "normal";
+        }
+
+        function getSavedWeight(week, day, exerciseIndex) {
+            var key = 'weight-w' + week + '-d' + day + '-e' + exerciseIndex;
+            var saved = localStorage.getItem(key);
+            return saved ? parseFloat(saved) : null;
+        }
+
+        function saveWeight(week, day, exerciseIndex, weight) {
+            var key = 'weight-w' + week + '-d' + day + '-e' + exerciseIndex;
+            localStorage.setItem(key, weight);
+        }
+
+        function didCompleteExerciseLastWeek(week, day, exerciseIndex, totalSets) {
+            if (week <= 1) return true;
+            var prevWeek = week - 1;
+            for (var i = 1; i <= totalSets; i++) {
+                if (!getProgress(prevWeek, day, exerciseIndex, i)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        function getWeightForWeek(startWeight, week, day, exerciseIndex, totalSets) {
+            if (startWeight === 0) return 0;
+            
+            var weekType = getWeekType(week);
+            
+            var saved = getSavedWeight(week, day, exerciseIndex);
+            if (saved !== null) {
+                if (weekType === "deload") {
+                    return Math.round(saved * 0.7);
+                }
+                return saved;
+            }
+            
+            if (week === 1) {
+                saveWeight(week, day, exerciseIndex, startWeight);
+                return startWeight;
+            }
+            
+            var prevWeek = week - 1;
+            var prevWeekType = getWeekType(prevWeek);
+            var prevWeight = getWeightForWeek(startWeight, prevWeek, day, exerciseIndex, totalSets);
+            
+            if (prevWeekType === "deload") {
+                prevWeight = getSavedWeight(prevWeek - 1, day, exerciseIndex) || prevWeight / 0.7;
+            }
+            
+            var completedLastWeek = didCompleteExerciseLastWeek(week, day, exerciseIndex, totalSets);
+            
+            var newWeight = prevWeight;
+            if (completedLastWeek && prevWeekType !== "deload") {
+                newWeight = prevWeight + 5;
+            }
+            
+            saveWeight(week, day, exerciseIndex, newWeight);
+            
+            if (weekType === "deload") {
+                return Math.round(newWeight * 0.7);
+            }
+            
+            return newWeight;
+        }
+
+        function getWeightChangeStatus(week, day, exerciseIndex, totalSets) {
+            if (week === 1) return "start";
+            if (getWeekType(week) === "deload") return "deload";
+            
+            var prevWeek = week - 1;
+            if (getWeekType(prevWeek) === "deload") {
+                return "post-deload";
+            }
+            
+            var completedLastWeek = didCompleteExerciseLastWeek(week, day, exerciseIndex, totalSets);
+            return completedLastWeek ? "increase" : "same";
+        }
+
+        function saveProgress(week, day, exerciseIndex, setNum, value) {
+            var key = 'w' + week + '-d' + day + '-e' + exerciseIndex + '-s' + setNum;
+            var data = JSON.parse(localStorage.getItem('workoutData') || '{}');
+            data[key] = value;
+            localStorage.setItem('workoutData', JSON.stringify(data));
+        }
+
+        function getProgress(week, day, exerciseIndex, setNum) {
+            var key = 'w' + week + '-d' + day + '-e' + exerciseIndex + '-s' + setNum;
+            var data = JSON.parse(localStorage.getItem('workoutData') || '{}');
+            return data[key] || false;
+        }
+
+        function getCompletedSets(week, day, exerciseIndex, totalSets) {
+            var completed = 0;
+            for (var i = 1; i <= totalSets; i++) {
+                if (getProgress(week, day, exerciseIndex, i)) completed++;
+            }
+            return completed;
+        }
+
+        function renderWeekSelector() {
+            var selector = document.getElementById('weekSelector');
+            selector.innerHTML = '';
+            
+            for (var week = 1; week <= 12; week++) {
+                var btn = document.createElement('button');
+                btn.className = 'week-btn';
+                btn.textContent = 'Week ' + week;
+                
+                if (getWeekType(week) === 'deload') {
+                    btn.classList.add('deload');
+                }
+                
+                if (week === currentWeek) {
+                    btn.classList.add('active');
+                }
+                
+                btn.setAttribute('data-week', week);
+                btn.onclick = function() {
+                    currentWeek = parseInt(this.getAttribute('data-week'));
+                    selectedDay = null;
+                    render();
+                };
+                
+                selector.appendChild(btn);
+            }
+            
+            var alert = document.getElementById('weekAlert');
+            if (getWeekType(currentWeek) === 'deload') {
+                alert.innerHTML = '<h3>Deload Week - Use 70% Weight</h3><p>This is a recovery week. The weights shown are automatically reduced to 70%. Next week you will return to your normal progression.</p>';
+                alert.style.display = 'block';
+            } else {
+                alert.style.display = 'none';
+            }
+        }
+
+        function renderDayCards() {
+            var grid = document.getElementById('workoutGrid');
+            grid.innerHTML = '';
+            
+            for (var dayNum in program) {
+                var dayInfo = program[dayNum];
+                var card = document.createElement('div');
+                card.className = 'day-card';
+                if (selectedDay === parseInt(dayNum)) {
+                    card.classList.add('selected');
+                }
+                
+                var totalExercises = dayInfo.exercises.length;
+                var completedExercises = 0;
+                
+                for (var i = 0; i < dayInfo.exercises.length; i++) {
+                    var ex = dayInfo.exercises[i];
+                    if (getCompletedSets(currentWeek, dayNum, i, ex.sets) === ex.sets) {
+                        completedExercises++;
+                    }
+                }
+                
+                var progress = (completedExercises / totalExercises) * 100;
+                
+                card.innerHTML = '<div class="day-header">' +
+                    '<h3>Day ' + dayNum + '</h3>' +
+                    '<span>' + completedExercises + '/' + totalExercises + '</span>' +
+                    '</div>' +
+                    '<p style="color: #6b7280; margin-bottom: 10px;">' + dayInfo.name + '</p>' +
+                    '<div class="progress-bar">' +
+                    '<div class="progress-fill" style="width: ' + progress + '%"></div>' +
+                    '</div>';
+                
+                card.setAttribute('data-day', dayNum);
+                card.onclick = function() {
+                    var day = parseInt(this.getAttribute('data-day'));
+                    selectedDay = selectedDay === day ? null : day;
+                    render();
+                };
+                
+                grid.appendChild(card);
+            }
+        }
+
+        function renderWorkoutDetail() {
+            var detail = document.getElementById('workoutDetail');
+            
+            if (!selectedDay) {
+                detail.className = 'hidden';
+                return;
+            }
+            
+            detail.className = 'workout-detail';
+            var dayInfo = program[selectedDay];
+            
+            var html = '<h2>Day ' + selectedDay + ': ' + dayInfo.name + '</h2>' +
+                '<p style="color: #6b7280; margin-bottom: 20px;">Week ' + currentWeek + ' - Click set buttons to mark as complete</p>';
+            
+            for (var exIdx = 0; exIdx < dayInfo.exercises.length; exIdx++) {
+                var exercise = dayInfo.exercises[exIdx];
+                var currentWeight = getWeightForWeek(exercise.startWeight, currentWeek, selectedDay, exIdx, exercise.sets);
+                var completedSets = getCompletedSets(currentWeek, selectedDay, exIdx, exercise.sets);
+                var isComplete = completedSets === exercise.sets;
+                var changeStatus = getWeightChangeStatus(currentWeek, selectedDay, exIdx, exercise.sets);
+                
+                var badgeHTML = '';
+                if (changeStatus === 'increase') {
+                    var prevWeight = getWeightForWeek(exercise.startWeight, currentWeek - 1, selectedDay, exIdx, exercise.sets);
+                    badgeHTML = '<span class="weight-badge increase">+5 lbs from last week</span>';
+                } else if (changeStatus === 'same') {
+                    badgeHTML = '<span class="weight-badge same">Same weight (retry)</span>';
+                } else if (changeStatus === 'deload') {
+                    badgeHTML = '<span class="weight-badge deload">Deload (70%)</span>';
+                } else if (changeStatus === 'post-deload') {
+                    badgeHTML = '<span class="weight-badge increase">Back to full weight</span>';
+                }
+                
+                html += '<div class="exercise-card ' + (isComplete ? 'complete' : '') + '">' +
+                    '<div class="exercise-header">' +
+                    '<div>' +
+                    '<div class="exercise-name">' + exercise.name + '</div>' +
+                    '<div class="exercise-notes">' + exercise.notes + '</div>' +
+                    '</div>' +
+                    (isComplete ? '<span style="color: #10b981; font-size: 1.5em;">✓</span>' : '') +
+                    '</div>' +
+                    '<div class="exercise-stats">' +
+                    '<div class="weight-display">' +
+                    '<div><span class="stat-label">Weight:</span>' +
+                    '<span style="color: #333;"> ' + currentWeight + ' lbs</span></div>' +
+                    badgeHTML +
+                    '</div>' +
+                    '<div>' +
+                    '<span class="stat-label">Sets x Reps:</span>' +
+                    '<span style="color: #333;"> ' + exercise.sets + ' x ' + exercise.reps + '</span>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="set-buttons" style="grid-template-columns: repeat(' + exercise.sets + ', 1fr);">';
+                
+                for (var setNum = 1; setNum <= exercise.sets; setNum++) {
+                    var isSetComplete = getProgress(currentWeek, selectedDay, exIdx, setNum);
+                    html += '<button class="set-btn ' + (isSetComplete ? 'complete' : '') + '" ' +
+                        'onclick="toggleSet(' + currentWeek + ', ' + selectedDay + ', ' + exIdx + ', ' + setNum + ')">' +
+                        'Set ' + setNum +
+                        '</button>';
+                }
+                
+                html += '</div>';
+                
+                var statusHTML = '';
+                if (completedSets === exercise.sets) {
+                    if (currentWeek < 12 && getWeekType(currentWeek + 1) !== 'deload') {
+                        statusHTML = '<div class="completion-status success">✓ All sets complete! Weight will increase by 5 lbs next week</div>';
+                    } else if (currentWeek < 12 && getWeekType(currentWeek + 1) === 'deload') {
+                        statusHTML = '<div class="completion-status success">✓ All sets complete! Next week is deload, then you will progress</div>';
+                    } else {
+                        statusHTML = '<div class="completion-status success">✓ All sets complete!</div>';
+                    }
+                } else if (completedSets > 0) {
+                    statusHTML = '<div class="completion-status incomplete">⚠ Incomplete - Next week will stay at ' + currentWeight + ' lbs</div>';
+                }
+                
+                html += statusHTML + '</div>';
+            }
+            
+            detail.innerHTML = html;
+        }
+
+        function toggleSet(week, day, exerciseIndex, setNum) {
+            var current = getProgress(week, day, exerciseIndex, setNum);
+            saveProgress(week, day, exerciseIndex, setNum, !current);
+            render();
+        }
+
+        function render() {
+            renderWeekSelector();
+            renderDayCards();
+            renderWorkoutDetail();
+        }
+
+        function exportToCSV() {
+            var csv = 'Week,Day,Exercise,Sets,Reps,Weight (lbs),Completed Sets,Status,Notes\n';
+            
+            for (var week = 1; week <= 12; week++) {
+                for (var dayNum in program) {
+                    var dayInfo = program[dayNum];
+                    for (var exIdx = 0; exIdx < dayInfo.exercises.length; exIdx++) {
+                        var exercise = dayInfo.exercises[exIdx];
+                        var weight = getWeightForWeek(exercise.startWeight, week, dayNum, exIdx, exercise.sets);
+                        var completed = getCompletedSets(week, dayNum, exIdx, exercise.sets);
+                        var status = completed === exercise.sets ? 'Complete' : completed > 0 ? 'Partial' : 'Not Started';
+                        
+                        csv += week + ',' + dayNum + ',"' + exercise.name + '",' + exercise.sets + ',' + 
+                            exercise.reps + ',' + weight + ',' + completed + '/' + exercise.sets + ',' + 
+                            status + ',"' + exercise.notes + '"\n';
+                    }
+                }
+            }
+            
+            var blob = new Blob([csv], { type: 'text/csv' });
+            var url = window.URL.createObjectURL(blob);
+            var a = document.createElement('a');
+            a.href = url;
+            a.download = '12-week-5x5-workout-tracker.csv';
+            a.click();
+        }
+
+        function resetData() {
+            if (confirm('Are you sure you want to reset all progress? This cannot be undone.')) {
+                localStorage.clear();
+                render();
+            }
+        }
+
+        render();
+    </script>
+</body>
+</html>
