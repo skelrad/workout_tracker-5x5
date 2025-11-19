@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Progressive 5x5 Dumbbell Program</title>
 <style>
-:root{--accent:#3b82f6;--muted:#6b7280;--success:#10b981;--danger:#ef4444}
+:root{--accent:#3b82f6;--success:#10b981;--danger:#ef4444;--muted:#6b7280}
 *{box-sizing:border-box}
 body{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:#f5f5f5;margin:0;padding:20px;color:#111}
 .container{max-width:1100px;margin:0 auto}
@@ -25,7 +25,9 @@ p.lead{margin:0;color:var(--muted)}
 .day-card.selected{border-color:var(--accent);background:#eff6ff}
 .exercise-card{padding:12px;border-radius:8px;border:1px solid #e6e6e6;margin-bottom:10px;background:#fafafa}
 .set-buttons{display:flex;gap:8px;flex-wrap:wrap}
-.set-btn{padding:8px 10px;border-radius:6px;border:1px solid #d1d5db;background:#fff;cursor:pointer;flex:1;text-align:center}
+.set-btn{padding:8px 10px;border-radius:6px;border:1px solid #d1d5db;background:#fff;cursor:pointer;position:relative}
+.set-btn.complete{background:var(--success);color:#fff;border-color:var(--success)}
+.set-btn.failed{background:var(--danger);color:#fff;border-color:var(--danger)}
 .hidden{display:none}
 .muted{color:var(--muted);font-size:.95rem}
 .flex{display:flex;gap:12px;align-items:center}
@@ -33,14 +35,13 @@ p.lead{margin:0;color:var(--muted)}
 .small{font-size:.9rem}
 .alert{padding:12px;border-radius:8px;background:#dbeafe;border-left:4px solid var(--accent);margin-bottom:14px}
 footer{margin-top:18px;text-align:center;color:var(--muted);font-size:0.9rem}
-@media print{.controls,button{display:none}}
 </style>
 </head>
 <body>
 <div class="container">
   <div class="card">
     <h1>Progressive 5x5 Dumbbell Program</h1>
-    <p class="lead">Track sets, weights and progression. Every 4th week is a deload (70%).</p>
+    <p class="lead">Track sets, weights, and manual progression. Every 4th week is a deload.</p>
     <div id="cycleInfo" class="muted small" style="margin-top:10px"></div>
   </div>
 
@@ -63,272 +64,160 @@ footer{margin-top:18px;text-align:center;color:var(--muted);font-size:0.9rem}
 </div>
 
 <script>
-(function appModule(){
+(function(){
 'use strict';
 
+// ---------------- DATA ----------------
 const PROGRAM = {
-  1: { name: "Upper Body Push", exercises: [
-    { name:"Incline Dumbbell Press", sets:5, reps:5, startWeight:25, notes:"Focus on upper chest" },
-    { name:"Standing Overhead Press", sets:5, reps:5, startWeight:20, notes:"Strict form" },
-    { name:"Dumbbell Floor Press", sets:5, reps:5, startWeight:30, notes:"Protect shoulders" },
-    { name:"Lateral Raises", sets:3, reps:12, startWeight:10, notes:"Slight bend in elbow" },
-    { name:"Overhead Tricep Extension", sets:3, reps:10, startWeight:20, notes:"Single DB, both arms" }
+  1: { name: "Upper Body Push", exercises:[
+    {name:"Incline Dumbbell Press", sets:5, startWeight:25, notes:"Focus on upper chest"},
+    {name:"Standing Overhead Press", sets:5, startWeight:20, notes:"Strict form"},
+    {name:"Dumbbell Floor Press", sets:5, startWeight:30, notes:"Protect shoulders"}
   ]},
-  2: { name: "Lower Body", exercises: [
-    { name:"Goblet Squats", sets:5, reps:5, startWeight:40, notes:"Hold one DB at chest" },
-    { name:"Romanian Deadlifts", sets:5, reps:5, startWeight:30, notes:"Hinge at hips" },
-    { name:"Bulgarian Split Squats", sets:4, reps:8, startWeight:20, notes:"Each leg" },
-    { name:"Dumbbell Lunges", sets:3, reps:10, startWeight:20, notes:"Each leg, walking" },
-    { name:"Calf Raises", sets:3, reps:15, startWeight:30, notes:"On step, hold DBs" }
-  ]},
-  3: { name: "Cardio & Core", exercises: [
-    { name:"Treadmill Intervals", sets:1, reps:20, startWeight:0, notes:"20 min total" },
-    { name:"Plank", sets:3, reps:1, startWeight:0, notes:"Hold 30-60s" },
-    { name:"Russian Twists", sets:3, reps:20, startWeight:15, notes:"One DB" },
-    { name:"Dumbbell Side Bends", sets:3, reps:15, startWeight:25, notes:"Each side" },
-    { name:"Lying Leg Raises", sets:3, reps:12, startWeight:0, notes:"Slow and controlled" }
-  ]},
-  4: { name: "Upper Body Pull", exercises: [
-    { name:"Bent Over Rows", sets:5, reps:5, startWeight:35, notes:"Pull to hip" },
-    { name:"Single Arm Row", sets:4, reps:8, startWeight:40, notes:"Each arm" },
-    { name:"Dumbbell Pullover", sets:4, reps:10, startWeight:30, notes:"Chest/back combo" },
-    { name:"Hammer Curls", sets:4, reps:10, startWeight:20, notes:"Neutral grip" },
-    { name:"Reverse Flyes", sets:3, reps:12, startWeight:12, notes:"Rear delts" }
-  ]},
-  5: { name: "Full Body & Cardio", exercises: [
-    { name:"Dumbbell Clean & Press", sets:4, reps:8, startWeight:25, notes:"Explosive" },
-    { name:"Goblet Squats", sets:4, reps:8, startWeight:40, notes:"Similar to Day 2" },
-    { name:"Push-ups", sets:3, reps:15, startWeight:0, notes:"On knees if needed" },
-    { name:"Dumbbell Swings", sets:3, reps:15, startWeight:30, notes:"Hip drive" },
-    { name:"Treadmill Intervals", sets:1, reps:15, startWeight:0, notes:"15 min" }
+  2: { name: "Lower Body", exercises:[
+    {name:"Goblet Squats", sets:5, startWeight:40, notes:"Hold one DB at chest"},
+    {name:"Romanian Deadlifts", sets:5, startWeight:30, notes:"Hinge at hips"}
   ]}
 };
 
-// ----- DataStore -----
-const DataStore=(function(){
-const prefix='prog_v1_';
-function key(...parts){ return prefix+parts.join('|'); }
-function getJSON(k,fallback=null){ try { const raw=localStorage.getItem(k); return raw?JSON.parse(raw):fallback; } catch(e){return fallback;} }
-function setJSON(k,v){ try { localStorage.setItem(k,JSON.stringify(v)); } catch(e){} }
-function progressKey(cycle, week, day, exIdx, set){ return key('p',cycle,week,day,exIdx,'s'+set); }
-function weightKey(cycle, week, day, exIdx){ return key('w',cycle,week,day,exIdx); }
-function adjKey(cycle, week, day, exIdx){ return key('a',cycle,week,day,exIdx); }
-
-return {
-  getCycle(){ return parseInt(localStorage.getItem(key('currentCycle'))||'1',10); },
-  setCycle(v){ localStorage.setItem(key('currentCycle'),String(v)); },
-  getWeek(){ return parseInt(localStorage.getItem(key('currentWeek'))||'1',10); },
-  setWeek(v){ localStorage.setItem(key('currentWeek'),String(v)); },
-  saveProgress(cycle, week, day, exIdx, setNum, value){ localStorage.setItem(progressKey(cycle,week,day,exIdx,setNum), value); },
-  getProgress(cycle, week, day, exIdx, setNum){ return localStorage.getItem(progressKey(cycle,week,day,exIdx,setNum))||null; },
-  saveWeight(cycle, week, day, exIdx, weight){ localStorage.setItem(weightKey(cycle,week,day,exIdx),String(weight)); },
-  getSavedWeight(cycle, week, day, exIdx){ const v=localStorage.getItem(weightKey(cycle,week,day,exIdx)); return v!==null?parseFloat(v):null; },
-  saveAdjustment(cycle, week, day, exIdx, adj){ localStorage.setItem(adjKey(cycle,week,day,exIdx),String(adj)); },
-  getAdjustment(cycle, week, day, exIdx){ const v=localStorage.getItem(adjKey(cycle,week,day,exIdx)); return v!==null?parseFloat(v):null; },
-  exportCSV(){ const rows=[['key','value']]; for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i); if(k && k.startsWith(prefix)) rows.push([k,localStorage.getItem(k)]);} return rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n'); },
-  resetAll(){ for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i); if(k&&k.startsWith(prefix)) localStorage.removeItem(k); } }
-};
-})();
-
-// ----- Helpers -----
-function getWeekType(week){ return (week%4===0)?'deload':'normal'; }
-
-function getExercisePerformance(cycle, week, day, exIdx, totalSets){
-let completed=0, failed=0;
-for(let s=1;s<=totalSets;s++){
-const p=DataStore.getProgress(cycle,week,day,exIdx,s);
-if(p==='complete') completed++; else if(p==='failed') failed++;
-}
-return {completed, failed, total: totalSets};
-}
-
-function didCompleteLastWeek(cycle, week, day, exIdx, totalSets){
-let prevCycle=cycle, prevWeek=week-1;
-if(prevWeek<1){ prevCycle=cycle-1; prevWeek=12; }
-if(prevCycle<1) return true;
-const perf=getExercisePerformance(prevCycle,prevWeek,day,exIdx,totalSets);
-return perf.completed===totalSets;
-}
-
-function computeWeight(startWeight, cycle, week, day, exIdx, totalSets){
-if(!startWeight) return 0;
-try{
-const weekType=getWeekType(week);
-const saved=DataStore.getSavedWeight(cycle,week,day,exIdx);
-if(saved!==null) return weekType==='deload'?Math.round(saved*0.7):saved;
-if(cycle===1 && week===1){ DataStore.saveWeight(cycle,week,day,exIdx,startWeight); return startWeight; }
-let prevCycle=cycle, prevWeek=week-1;
-if(prevWeek<1){ prevCycle=cycle-1; prevWeek=12; }
-if(prevCycle<1){ DataStore.saveWeight(cycle,week,day,exIdx,startWeight); return startWeight; }
-const prevWeight=computeWeight(startWeight,prevCycle,prevWeek,day,exIdx,totalSets);
-const manualAdj=DataStore.getAdjustment(prevCycle,prevWeek,day,exIdx);
-let newWeight=prevWeight;
-if(manualAdj!==null) newWeight=prevWeight+manualAdj;
-else{ const prevWeekType=getWeekType(prevWeek); const completedLast=didCompleteLastWeek(cycle,week,day,exIdx,totalSets); if(completedLast && prevWeekType!=='deload') newWeight+=5; }
-DataStore.saveWeight(cycle,week,day,exIdx,newWeight);
-return weekType==='deload'?Math.round(newWeight*0.7):newWeight;
-}catch(err){return startWeight;}
-}
-
-// ----- UI -----
-const UI=(function(){
-const dom={
-cycleInfo:document.getElementById('cycleInfo'),
-weekSelector:document.getElementById('weekSelector'),
-weekAlert:document.getElementById('weekAlert'),
-grid:document.getElementById('workoutGrid'),
-detail:document.getElementById('workoutDetail'),
-exportBtn:document.getElementById('exportBtn'),
-resetBtn:document.getElementById('resetBtn')
+// ---------------- STORAGE ----------------
+const DataStore = {
+  prefix:'prog_v2_',
+  key(...parts){ return this.prefix + parts.join('|'); },
+  getCycle(){ return parseInt(localStorage.getItem(this.key('currentCycle'))||'1',10); },
+  setCycle(v){ localStorage.setItem(this.key('currentCycle'),v); },
+  getWeek(){ return parseInt(localStorage.getItem(this.key('currentWeek'))||'1',10); },
+  setWeek(v){ localStorage.setItem(this.key('currentWeek'),v); },
+  getProgress(day,ex,set){ return localStorage.getItem(this.key('p',day,ex,'s'+set))||null; },
+  saveProgress(day,ex,set,val){ localStorage.setItem(this.key('p',day,ex,'s'+set),val); },
+  removeProgress(day,ex,set){ localStorage.removeItem(this.key('p',day,ex,'s'+set)); },
+  getWeight(day,ex){ const v=localStorage.getItem(this.key('w',day,ex)); return v!==null?parseFloat(v):PROGRAM[day].exercises[ex-1].startWeight; },
+  saveWeight(day,ex,val){ localStorage.setItem(this.key('w',day,ex),val); },
+  getAdjustment(day,ex){ const v=localStorage.getItem(this.key('a',day,ex)); return v!==null?parseInt(v,10):null; },
+  saveAdjustment(day,ex,val){ localStorage.setItem(this.key('a',day,ex),val); },
+  removeAdjustment(day,ex){ localStorage.removeItem(this.key('a',day,ex)); },
+  exportCSV(){
+    const rows=[['key','value']];
+    for(let i=0;i<localStorage.length;i++){
+      const k=localStorage.key(i);
+      if(k&&k.startsWith(this.prefix)) rows.push([k,localStorage.getItem(k)]);
+    }
+    return rows.map(r=>r.map(c=>`"${c}"`).join(',')).join('\n');
+  },
+  resetAll(){ Object.keys(localStorage).forEach(k=>{ if(k.startsWith(this.prefix)) localStorage.removeItem(k); }); }
 };
 
-function renderCycleInfo(cycle,week){ dom.cycleInfo.textContent=`Cycle ${cycle} — Week ${week} of 12 (${getWeekType(week)})`; }
-function clearChildren(el){ while(el.firstChild) el.removeChild(el.firstChild); }
+// ---------------- UI ----------------
+const UI = {
+  cycleInfo: document.getElementById('cycleInfo'),
+  weekSelector: document.getElementById('weekSelector'),
+  grid: document.getElementById('workoutGrid'),
+  detail: document.getElementById('workoutDetail'),
+  exportBtn: document.getElementById('exportBtn'),
+  resetBtn: document.getElementById('resetBtn'),
 
-function renderWeekSelector(currentWeek){
-clearChildren(dom.weekSelector);
-for(let w=1; w<=12; w++){
-const btn=document.createElement('button');
-btn.type='button'; btn.className='week-btn';
-btn.textContent='Week '+w;
-if(getWeekType(w)==='deload') btn.classList.add('deload');
-if(w===currentWeek) btn.classList.add('active');
-btn.dataset.week=String(w);
-btn.addEventListener('click',onWeekClick);
-dom.weekSelector.appendChild(btn);
-}
-}
+  renderCycleInfo(week){ this.cycleInfo.textContent = `Week ${week}`; },
 
-function renderDaysGrid(cycle, week){
-clearChildren(dom.grid);
-const days=Object.keys(PROGRAM).map(k=>parseInt(k,10)).sort((a,b)=>a-b);
-days.forEach(day=>{
-const def=PROGRAM[day];
-const card=document.createElement('div');
-card.className='card day-card';
-card.tabIndex=0;
-card.dataset.day=String(day);
-card.innerHTML=`
-<div style="display:flex;justify-content:space-between;align-items:center">
-  <strong>Day ${day}</strong>
-  <span class="muted small">${def.name}</span>
-</div>
-<div class="small muted" style="margin-top:8px">
-  ${def.exercises.length} exercises
-</div>`;
-card.addEventListener('click',()=>selectDay(day));
-card.addEventListener('keydown',(ev)=>{ if(ev.key==='Enter'||ev.key===' '){ ev.preventDefault(); selectDay(day); } });
-dom.grid.appendChild(card);
+  clear(el){ while(el.firstChild) el.removeChild(el.firstChild); },
+
+  renderWeekSelector(currentWeek){
+    this.clear(this.weekSelector);
+    for(let w=1;w<=12;w++){
+      const btn=document.createElement('button');
+      btn.type='button'; btn.className='week-btn'; btn.textContent='Week '+w;
+      if(w===currentWeek) btn.classList.add('active');
+      btn.dataset.week=w;
+      btn.addEventListener('click',()=>{ DataStore.setWeek(w); render(); });
+      this.weekSelector.appendChild(btn);
+    }
+  },
+
+  renderDaysGrid(){
+    this.clear(this.grid);
+    Object.keys(PROGRAM).forEach(d=>{
+      const day=parseInt(d,10);
+      const card=document.createElement('div');
+      card.className='card day-card'; card.tabIndex=0; card.dataset.day=day;
+      card.innerHTML=`<strong>Day ${day}</strong><br><span class="muted small">${PROGRAM[day].name}</span>`;
+      card.addEventListener('click',()=>selectDay(day));
+      card.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); selectDay(day); } });
+      this.grid.appendChild(card);
+    });
+  },
+
+  renderWorkoutDetail(day){
+    if(!day){ this.detail.classList.add('hidden'); return; }
+    this.detail.classList.remove('hidden'); this.clear(this.detail);
+    const exercises=PROGRAM[day].exercises;
+    exercises.forEach((ex,idx)=>{
+      const exIdx=idx+1;
+      const card=document.createElement('div'); card.className='exercise-card';
+      const weight=DataStore.getWeight(day,exIdx);
+      card.innerHTML=`<strong>${ex.name}</strong> — ${weight} lbs<br>${ex.notes||''}`;
+      const setRow=document.createElement('div'); setRow.className='set-buttons'; setRow.style.marginTop='8px';
+      for(let s=1;s<=ex.sets;s++){
+        const b=document.createElement('button'); b.type='button'; b.className='set-btn'; b.textContent='Set '+s;
+        function updateStyle(state){
+          b.classList.remove('complete','failed');
+          if(state==='complete') b.classList.add('complete');
+          else if(state==='failed') b.classList.add('failed');
+        }
+        updateStyle(DataStore.getProgress(day,exIdx,s));
+        b.addEventListener('click',ev=>{
+          const rect=b.getBoundingClientRect();
+          const clickX=ev.clientX-rect.left;
+          const state=DataStore.getProgress(day,exIdx,s);
+          let next=null;
+          if(ev.detail===2){ next=null; } // double click clears
+          else if(clickX<rect.width/2){ next='complete'; } else{ next='failed'; }
+          if(next===null) DataStore.removeProgress(day,exIdx,s);
+          else DataStore.saveProgress(day,exIdx,s,next);
+          updateStyle(next);
+        });
+        setRow.appendChild(b);
+      }
+      card.appendChild(setRow);
+
+      // manual weight buttons
+      const adjRow=document.createElement('div'); adjRow.className='set-buttons'; adjRow.style.marginTop='8px';
+      const manual=[-5,-3,-1,0,3,5,10,'Clear'];
+      manual.forEach(v=>{
+        const btn=document.createElement('button'); btn.type='button'; btn.className='week-btn'; btn.style.padding='6px 8px';
+        btn.textContent=v==='Clear'?v:(v>0?`+${v}`:`${v}`);
+        const savedAdj=DataStore.getAdjustment(day,exIdx);
+        if((v==='Clear'&&savedAdj===null)||savedAdj===v) btn.style.background='#3b82f6',btn.style.color='#fff';
+        btn.addEventListener('click',()=>{
+          if(v==='Clear') DataStore.removeAdjustment(day,exIdx);
+          else DataStore.saveAdjustment(day,exIdx,v);
+          render();
+        });
+        adjRow.appendChild(btn);
+      });
+      card.appendChild(adjRow);
+      UI.detail.appendChild(card);
+    });
+  }
+};
+
+// ---------------- CONTROLLER ----------------
+let selectedDay=null;
+function selectDay(day){ selectedDay=day; UI.renderWorkoutDetail(day); render(); }
+
+UI.exportBtn.addEventListener('click',()=>{
+  const blob=new Blob([DataStore.exportCSV()],{type:'text/csv'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='workout.csv'; a.click(); URL.revokeObjectURL(a.href);
 });
+UI.resetBtn.addEventListener('click',()=>{ if(confirm('Reset all progress?')){ DataStore.resetAll(); render(); } });
+
+function render(){
+  const week=DataStore.getWeek();
+  UI.renderCycleInfo(week);
+  UI.renderWeekSelector(week);
+  UI.renderDaysGrid();
+  UI.renderWorkoutDetail(selectedDay);
 }
 
-function renderWorkoutDetail(cycle,week,day){
-if(!day){ dom.detail.classList.add('hidden'); dom.detail.innerHTML=''; return; }
-dom.detail.classList.remove('hidden'); clearChildren(dom.detail);
-const def=PROGRAM[day];
-const heading=document.createElement('div');
-heading.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center">
-<div><strong>Day ${day} — ${def.name}</strong><div class="muted small">${def.exercises.length} exercises</div></div>
-<div class="muted small">Week ${week} (${getWeekType(week)})</div>
-</div>`;
-dom.detail.appendChild(heading);
-
-// exercises
-def.exercises.forEach((ex,idx)=>{
-const exIdx=idx+1;
-const exCard=document.createElement('div');
-exCard.className='exercise-card';
-const weight=computeWeight(ex.startWeight,cycle,week,day,exIdx,ex.sets);
-const perf=getExercisePerformance(cycle,week,day,exIdx,ex.sets);
-exCard.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:flex-start">
-<div>
-  <div style="font-weight:700">${ex.name}</div>
-  <div class="muted small">${ex.notes||''}</div>
-</div>
-<div style="text-align:right">
-  <div style="font-weight:700">${weight} lbs</div>
-  <div class="muted small">Sets ${perf.completed}/${perf.total}</div>
-</div>
-</div>
-<div style="margin-top:10px" id="ex_${day}_${exIdx}"></div>`;
-dom.detail.appendChild(exCard);
-
-// set buttons
-const placeholder=exCard.querySelector(`#ex_${day}_${exIdx}`);
-const setRow=document.createElement('div'); setRow.className='set-buttons';
-for(let s=1;s<=ex.sets;s++){
-const b=document.createElement('button'); b.type='button'; b.className='set-btn'; b.textContent=`Set ${s}`;
-b.style.position='relative'; b.style.padding='8px 0'; b.style.flex='1'; b.style.display='inline-block';
-const state=DataStore.getProgress(cycle,week,day,exIdx,s);
-updateSetButtonStyle(b,state);
-b.addEventListener('click',(ev)=>{
-const rect=b.getBoundingClientRect();
-const clickX=ev.clientX-rect.left;
-const half=rect.width/2;
-const cur=DataStore.getProgress(cycle,week,day,exIdx,s);
-let nextState=null;
-if(ev.detail===2){ nextState=null; }
-else if(clickX<half){ nextState='complete'; }
-else{ nextState='failed'; }
-if(nextState===null){ localStorage.removeItem(`prog_v1_p|${cycle}|${week}|${day}|${exIdx}|s${s}`); }
-else{ DataStore.saveProgress(cycle,week,day,exIdx,s,nextState); }
-updateSetButtonStyle(b,nextState);
-renderDaysGrid(cycle,week);
-});
-setRow.appendChild(b);
-}
-placeholder.appendChild(setRow);
-
-// manual weight adjustment
-const adjRow=document.createElement('div'); adjRow.className='set-buttons'; adjRow.style.marginTop='8px';
-const manualBtns=[-5,-3,-1,0,3,5,10,'Clear'];
-manualBtns.forEach(val=>{
-const btn=document.createElement('button'); btn.type='button'; btn.className='set-btn';
-btn.textContent=val==='Clear'?val: (val>0?`+${val}`:`${val}`);
-const savedAdj=DataStore.getAdjustment(cycle,week,day,exIdx);
-if((val==='Clear' && savedAdj===null) || savedAdj===val) btn.style.background=val==='Clear'?'#ef4444':'#3b82f6', btn.style.color='#fff';
-btn.addEventListener('click',()=>{ 
-if(val==='Clear'){ localStorage.removeItem(`prog_v1_a|${cycle}|${week}|${day}|${exIdx}`); }
-else{ DataStore.saveAdjustment(cycle,week,day,exIdx,val); }
-renderWorkoutDetail(cycle,week,day);
-});
-adjRow.appendChild(btn);
-});
-placeholder.appendChild(adjRow);
-
-});
-
-}
-
-function updateSetButtonStyle(btn,state){
-btn.style.background='#fff'; btn.style.color='#111'; btn.style.borderColor='#d1d5db';
-if(state==='complete'){ btn.style.background='#10b981'; btn.style.color='#fff'; btn.style.borderColor='#10b981'; }
-else if(state==='failed'){ btn.style.background='#ef4444'; btn.style.color='#fff'; btn.style.borderColor='#ef4444'; }
-}
-
-// ----- events -----
-function onWeekClick(ev){ const week=parseInt(ev.currentTarget.dataset.week,10); DataStore.setWeek(week); renderUI(); }
-function selectDay(day){ renderWorkoutDetail(DataStore.getCycle(),DataStore.getWeek(),day); }
-
-// export / reset
-UI.exportBtn.addEventListener('click',()=>{ 
-const blob=new Blob([DataStore.exportCSV()],{type:'text/csv'}); 
-const url=URL.createObjectURL(blob); 
-const a=document.createElement('a'); a.href=url; a.download='workout_progress.csv'; a.click(); 
-URL.revokeObjectURL(url);
-});
-UI.resetBtn.addEventListener('click',()=>{ if(confirm('Clear all progress?')){ DataStore.resetAll(); renderUI(); } });
-
-// render full UI
-function renderUI(){
-const cycle=DataStore.getCycle(), week=DataStore.getWeek();
-renderCycleInfo(cycle,week);
-renderWeekSelector(week);
-renderDaysGrid(cycle,week);
-renderWorkoutDetail(cycle,week,null);
-}
-
-renderUI();
+render();
 
 })();
 </script>
