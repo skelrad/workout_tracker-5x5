@@ -101,7 +101,6 @@ footer{margin-top:18px;text-align:center;color:var(--muted);font-size:0.9rem}
   'use strict';
 
   /* ---------- Program (full) ---------- */
-  // For cardio special items, include startTime/startReps/startPerSide fields
   const PROGRAM = {
     1: { name: "Upper Body Push", exercises: [
       { name:"Incline Dumbbell Press", sets:5, startWeight:25, notes:"Focus on upper chest" },
@@ -118,7 +117,7 @@ footer{margin-top:18px;text-align:center;color:var(--muted);font-size:0.9rem}
       { name:"Calf Raises", sets:3, startWeight:30, notes:"On step, hold DBs" }
     ]},
     3: { name: "Cardio & Core", exercises: [
-      { name:"Treadmill Intervals", sets:1, startWeight:0, notes:"Interval session — follow time/pace (no adjustments)" },
+      { name:"Treadmill Intervals", sets:1, startWeight:0, notes:"Interval session — no adjustments" },
       { name:"Plank", sets:5, startTime:30, notes:"Hold:" },
       { name:"Russian Twists", sets:5, startPerSide:10, notes:"10/side" },
       { name:"Dumbbell Side Bends", sets:3, startWeight:25, notes:"10 Each Side" },
@@ -134,9 +133,9 @@ footer{margin-top:18px;text-align:center;color:var(--muted);font-size:0.9rem}
     5: { name: "Full Body & Cardio", exercises: [
       { name:"Dumbbell Clean & Press", sets:4, startWeight:25, notes:"Explosive" },
       { name:"Goblet Squats", sets:4, startWeight:40, notes:"Similar to Day 2" },
-      { name:"Push-ups", sets:3, startWeight:0, notes:"On knees if needed" },
+      { name:"Push-ups", sets:5, startReps:15, notes:"" },              // reps-based (per your request)
       { name:"Dumbbell Swings", sets:3, startWeight:30, notes:"Hip drive" },
-      { name:"Treadmill Intervals", sets:1, startWeight:0, notes:"Interval session — follow time/pace (no adjustments)" }
+      { name:"Treadmill Intervals", sets:1, startWeight:0, notes:"Interval session — no adjustments" }
     ]}
   };
 
@@ -145,21 +144,18 @@ footer{margin-top:18px;text-align:center;color:var(--muted);font-size:0.9rem}
   function key(...parts){ return PREFIX + parts.join('|'); }
 
   const DS = {
-    // global week storage
     getWeek(){ return parseInt(localStorage.getItem(key('week')) || '1', 10); },
     setWeek(w){ localStorage.setItem(key('week'), String(w)); },
 
-    // progress per set (week, day, exIdx, set)
     saveProgress(week, day, exIdx, setNum, val){ localStorage.setItem(key('p', week, day, exIdx, 's'+setNum), String(val)); },
     getProgress(week, day, exIdx, setNum){ return localStorage.getItem(key('p', week, day, exIdx, 's'+setNum)) || null; },
     removeProgress(week, day, exIdx, setNum){ localStorage.removeItem(key('p', week, day, exIdx, 's'+setNum)); },
 
-    // saved absolute weight/time/reps for specific week/day/ex
+    // generic value store (weight/time/reps) for specific week/day/exercise
     saveValue(week, day, exIdx, val){ localStorage.setItem(key('v', week, day, exIdx), String(val)); },
     getValue(week, day, exIdx){ const v = localStorage.getItem(key('v', week, day, exIdx)); return v !== null ? Number(v) : null; },
     removeValue(week, day, exIdx){ localStorage.removeItem(key('v', week, day, exIdx)); },
 
-    // export/reset
     exportCSV(){
       const rows = [['key','value']];
       for(let i=0;i<localStorage.length;i++){
@@ -191,12 +187,10 @@ footer{margin-top:18px;text-align:center;color:var(--muted);font-size:0.9rem}
 
   function clear(el){ while(el.firstChild) el.removeChild(el.firstChild); }
 
-  /* ---------- Utilities for displayed values ---------- */
+  /* ---------- Helpers for displayed value ---------- */
   function getDisplayedValue(week, day, exIdx, exDef){
-    // exDef may have startWeight, startTime, startPerSide, startReps
     const saved = DS.getValue(week, day, exIdx);
     if (saved !== null) return saved;
-    // fallback ordering
     if (exDef.hasOwnProperty('startWeight')) return exDef.startWeight;
     if (exDef.hasOwnProperty('startTime')) return exDef.startTime;
     if (exDef.hasOwnProperty('startPerSide')) return exDef.startPerSide;
@@ -225,7 +219,6 @@ footer{margin-top:18px;text-align:center;color:var(--muted);font-size:0.9rem}
       const card = document.createElement('div');
       card.className = 'card day-card';
       card.tabIndex = 0;
-      card.dataset.day = String(day);
       card.innerHTML = `
         <div style="display:flex;justify-content:space-between;align-items:center">
           <strong>Day ${day}</strong>
@@ -255,13 +248,15 @@ footer{margin-top:18px;text-align:center;color:var(--muted);font-size:0.9rem}
     </div>`;
     dom.detail.appendChild(heading);
 
-    def.exercises.forEach((ex, idx) => {
+    // use for loop so we can continue
+    for (let idx = 0; idx < def.exercises.length; idx++){
+      const ex = def.exercises[idx];
       const exIdx = idx + 1;
       const exCard = document.createElement('div'); exCard.className = 'exercise-card';
 
-      // displayed value depends on exercise type
       const displayed = getDisplayedValue(week, day, exIdx, ex);
-      // subtitle handling
+
+      // subtitle logic
       let subtitleHTML = '';
       if (ex.hasOwnProperty('startTime')) {
         subtitleHTML = `<div class="muted small">Hold: ${displayed} s</div>`;
@@ -288,18 +283,14 @@ footer{margin-top:18px;text-align:center;color:var(--muted);font-size:0.9rem}
 
       const placeholder = exCard.querySelector(`#ex_${day}_${exIdx}`);
 
-      // --- set buttons row (pass/fail/clear) ---
+      // set buttons row (pass/fail/dbl click clear)
       const setRow = document.createElement('div'); setRow.className = 'set-buttons';
       for (let s = 1; s <= ex.sets; s++){
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = 'set-btn';
-        // two halves visually
-        const left = document.createElement('span'); left.className = 'half left'; left.textContent = '✓';
-        const right = document.createElement('span'); right.className = 'half right'; right.textContent = '✗';
+        const btn = document.createElement('button'); btn.type='button'; btn.className='set-btn';
+        const left = document.createElement('span'); left.className='half left'; left.textContent='✓';
+        const right = document.createElement('span'); right.className='half right'; right.textContent='✗';
         btn.appendChild(left); btn.appendChild(right);
 
-        // initial state
         const state = DS.getProgress(week, day, exIdx, s);
         if (state === 'complete') btn.classList.add('pass');
         else if (state === 'failed') btn.classList.add('fail');
@@ -326,23 +317,20 @@ footer{margin-top:18px;text-align:center;color:var(--muted);font-size:0.9rem}
       }
       placeholder.appendChild(setRow);
 
-      // --- "Change for Next Week" controls (if applicable) ---
-      // Determine nextWeek number
+      // next-week controls
       const nextWeek = (week % 12) + 1;
 
-      // Treadmill intervals: no change buttons (just informative)
+      // treadmill: no adjustments
       if (ex.name.toLowerCase().includes('treadmill')) {
-        const note = document.createElement('div');
-        note.className = 'muted small';
-        note.style.marginTop = '8px';
+        const note = document.createElement('div'); note.className='muted small'; note.style.marginTop='8px';
         note.textContent = 'No next-week adjustments for treadmill intervals.';
         placeholder.appendChild(note);
-        return;
+        continue; // next exercise
       }
 
-      // For Plank: time adjustments (seconds)
+      // Plank (time, seconds)
       if (ex.hasOwnProperty('startTime')) {
-        const wrap = document.createElement('div'); wrap.style.marginTop = '10px';
+        const wrap = document.createElement('div'); wrap.style.marginTop='10px';
         wrap.innerHTML = `<div style="font-weight:700;margin-bottom:6px">Change for Next Week (seconds)</div>`;
         const planned = DS.getValue(nextWeek, day, exIdx);
         const plannedText = document.createElement('div'); plannedText.className='muted small'; plannedText.style.marginBottom='6px';
@@ -368,10 +356,10 @@ footer{margin-top:18px;text-align:center;color:var(--muted);font-size:0.9rem}
 
         wrap.appendChild(row);
         placeholder.appendChild(wrap);
-        return;
+        continue;
       }
 
-      // For Russian Twists: reps per side adjustments
+      // Russian Twists (per-side reps)
       if (ex.hasOwnProperty('startPerSide')) {
         const wrap = document.createElement('div'); wrap.style.marginTop='10px';
         wrap.innerHTML = `<div style="font-weight:700;margin-bottom:6px">Change for Next Week (reps per side)</div>`;
@@ -399,10 +387,10 @@ footer{margin-top:18px;text-align:center;color:var(--muted);font-size:0.9rem}
 
         wrap.appendChild(row);
         placeholder.appendChild(wrap);
-        return;
+        continue;
       }
 
-      // For Lying Leg Raises: reps per set adjustments (display as sets)
+      // Lying Leg Raises (reps per set)
       if (ex.hasOwnProperty('startReps')) {
         const wrap = document.createElement('div'); wrap.style.marginTop='10px';
         wrap.innerHTML = `<div style="font-weight:700;margin-bottom:6px">Change for Next Week (reps per set)</div>`;
@@ -430,11 +418,18 @@ footer{margin-top:18px;text-align:center;color:var(--muted);font-size:0.9rem}
 
         wrap.appendChild(row);
         placeholder.appendChild(wrap);
-        return;
+        continue;
       }
 
-      // Default: strength/weight adjustments (weights for next week)
-      // Buttons: -5 / -3 / -1 / 0 / +3 / +5 / +10
+      // Push-ups (Day 5) - reps per set (startReps present)
+      if (ex.hasOwnProperty('startReps')) {
+        // handled above (startReps case) - but for safety it's covered already
+        // the previous block already processed startReps for lying leg raises and push-ups
+        // so this will not be reached. continue to next exercise.
+        continue;
+      }
+
+      // Default: strength weight adjustments
       {
         const wrap = document.createElement('div'); wrap.style.marginTop='10px';
         wrap.innerHTML = `<div style="font-weight:700;margin-bottom:6px">Weight change for next week</div>`;
@@ -464,7 +459,7 @@ footer{margin-top:18px;text-align:center;color:var(--muted);font-size:0.9rem}
         placeholder.appendChild(wrap);
       }
 
-    }); // end exercises loop
+    } // end for exercises
   } // end renderWorkoutDetail
 
   /* ---------- render glue ---------- */
@@ -473,13 +468,9 @@ footer{margin-top:18px;text-align:center;color:var(--muted);font-size:0.9rem}
     dom.cycleInfo.textContent = `Week ${week}`;
     renderWeekSelector(week);
     renderDaysGrid();
-    // preserve selection if any
     const sel = window._selectedDay || null;
     if (sel) renderWorkoutDetail(week, sel);
-    else {
-      dom.detail.classList.add('hidden');
-      dom.detail.innerHTML = '';
-    }
+    else { dom.detail.classList.add('hidden'); dom.detail.innerHTML = ''; }
   }
 
   function renderWeekSelector(currentWeek){
@@ -512,7 +503,6 @@ footer{margin-top:18px;text-align:center;color:var(--muted);font-size:0.9rem}
     window._selectedDay = day;
     const week = DS.getWeek();
     renderWorkoutDetail(week, day);
-    // highlight card
     document.querySelectorAll('.day-card').forEach(el=>{
       if (el.textContent.includes('Day '+day)) el.classList.add('selected'); else el.classList.remove('selected');
     });
@@ -534,13 +524,13 @@ footer{margin-top:18px;text-align:center;color:var(--muted);font-size:0.9rem}
     render();
   });
 
-  // initialize default week if not present
+  // initialize default week
   if (!localStorage.getItem(key('week'))) DS.setWeek(1);
 
   // initial render
   render();
 
-  // expose some debugging hooks
+  // expose for debugging
   window._workoutApp = { DS, PROGRAM, render };
 
 })();
