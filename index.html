@@ -1,49 +1,46 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Progressive 5x5 Dumbbell Program</title>
-  <style>
-    :root{--accent:#3b82f6;--muted:#6b7280;--success:#10b981;--warning:#f59e0b;--danger:#ef4444}
-    *{box-sizing:border-box}
-    body{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:#f5f5f5;margin:0;padding:20px;color:#111}
-    .container{max-width:1100px;margin:0 auto}
-    .card{background:#fff;padding:18px;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,.06);margin-bottom:18px}
-    h1{font-size:1.4rem;margin:0 0 6px}
-    p.lead{margin:0;color:var(--muted)}
-    .controls{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
-    .week-selector{display:flex;gap:8px;flex-wrap:wrap}
-    .week-btn{padding:8px 12px;border-radius:8px;border:2px solid #ddd;background:#fff;font-weight:600;cursor:pointer}
-    .week-btn:hover{background:#f3f4f6}
-    .week-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
-    .week-btn.deload{background:#fef3c7;border-color:#fbbf24}
-    .week-btn.deload.active{background:#fbbf24;color:#78350f}
-    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
-    .day-card{padding:14px;border-radius:8px;border:2px solid transparent;cursor:pointer}
-    .day-card:hover{transform:translateY(-4px);transition:transform .12s}
-    .day-card.selected{border-color:var(--accent);background:#eff6ff}
-    .exercise-card{padding:12px;border-radius:8px;border:1px solid #e6e6e6;margin-bottom:10px;background:#fafafa}
-    .set-buttons{display:flex;gap:8px;flex-wrap:wrap}
-    .set-btn{position:relative;padding:8px 10px;border-radius:6px;border:1px solid #d1d5db;background:#fff;cursor:pointer;min-width:60px;user-select:none;}
-    .set-btn.pass{background:var(--success);color:#fff;border-color:var(--success);}
-    .set-btn.fail{background:var(--danger);color:#fff;border-color:var(--danger);}
-    .set-btn span{display:inline-block;width:50%;text-align:center;}
-    .hidden{display:none}
-    .muted{color:var(--muted);font-size:.95rem}
-    .flex{display:flex;gap:12px;align-items:center}
-    .spacer{flex:1}
-    .small{font-size:.9rem}
-    .alert{padding:12px;border-radius:8px;background:#dbeafe;border-left:4px solid var(--accent);margin-bottom:14px}
-    footer{margin-top:18px;text-align:center;color:var(--muted);font-size:0.9rem}
-    @media print{.controls,button{display:none}}
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Progressive 5x5 Dumbbell Program</title>
+<style>
+:root{--accent:#3b82f6;--muted:#6b7280;--success:#10b981;--danger:#ef4444}
+*{box-sizing:border-box}
+body{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:#f5f5f5;margin:0;padding:20px;color:#111}
+.container{max-width:1100px;margin:0 auto}
+.card{background:#fff;padding:18px;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,.06);margin-bottom:18px}
+h1{font-size:1.4rem;margin:0 0 6px}
+p.lead{margin:0;color:var(--muted)}
+.controls{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.week-selector{display:flex;gap:8px;flex-wrap:wrap}
+.week-btn{padding:8px 12px;border-radius:8px;border:2px solid #ddd;background:#fff;font-weight:600;cursor:pointer}
+.week-btn:hover{background:#f3f4f6}
+.week-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.week-btn.deload{background:#fef3c7;border-color:#fbbf24}
+.week-btn.deload.active{background:#fbbf24;color:#78350f}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.day-card{padding:14px;border-radius:8px;border:2px solid transparent;cursor:pointer}
+.day-card:hover{transform:translateY(-4px);transition:transform .12s}
+.day-card.selected{border-color:var(--accent);background:#eff6ff}
+.exercise-card{padding:12px;border-radius:8px;border:1px solid #e6e6e6;margin-bottom:10px;background:#fafafa}
+.set-buttons{display:flex;gap:8px;flex-wrap:wrap}
+.set-btn{padding:8px 10px;border-radius:6px;border:1px solid #d1d5db;background:#fff;cursor:pointer;flex:1;text-align:center}
+.hidden{display:none}
+.muted{color:var(--muted);font-size:.95rem}
+.flex{display:flex;gap:12px;align-items:center}
+.spacer{flex:1}
+.small{font-size:.9rem}
+.alert{padding:12px;border-radius:8px;background:#dbeafe;border-left:4px solid var(--accent);margin-bottom:14px}
+footer{margin-top:18px;text-align:center;color:var(--muted);font-size:0.9rem}
+@media print{.controls,button{display:none}}
+</style>
 </head>
 <body>
 <div class="container">
   <div class="card">
     <h1>Progressive 5x5 Dumbbell Program</h1>
-    <p class="lead">Track sets, weights, and progression. Every 4th week is a deload (70%).</p>
+    <p class="lead">Track sets, weights and progression. Every 4th week is a deload (70%).</p>
     <div id="cycleInfo" class="muted small" style="margin-top:10px"></div>
   </div>
 
@@ -70,104 +67,110 @@
 'use strict';
 
 const PROGRAM = {
-1: { name: "Upper Body Push", exercises:[
-  {name:"Incline Dumbbell Press", sets:5, reps:5, startWeight:25, notes:"Focus on upper chest"},
-  {name:"Standing Overhead Press", sets:5, reps:5, startWeight:20, notes:"Strict form"},
-  {name:"Dumbbell Floor Press", sets:5, reps:5, startWeight:30, notes:"Protect shoulders"},
-  {name:"Lateral Raises", sets:3, reps:12, startWeight:10, notes:"Slight bend in elbow"},
-  {name:"Overhead Tricep Extension", sets:3, reps:10, startWeight:20, notes:"Single DB, both arms"}
-]},
-2: { name: "Lower Body", exercises:[
-  {name:"Goblet Squats", sets:5, reps:5, startWeight:40, notes:"Hold one DB at chest"},
-  {name:"Romanian Deadlifts", sets:5, reps:5, startWeight:30, notes:"Hinge at hips"},
-  {name:"Bulgarian Split Squats", sets:4, reps:8, startWeight:20, notes:"Each leg"},
-  {name:"Dumbbell Lunges", sets:3, reps:10, startWeight:20, notes:"Each leg, walking"},
-  {name:"Calf Raises", sets:3, reps:15, startWeight:30, notes:"On step, hold DBs"}
-]},
-3: { name: "Cardio & Core", exercises:[
-  {name:"Treadmill Intervals", sets:1, reps:20, startWeight:0, notes:"20 min total"},
-  {name:"Plank", sets:3, reps:1, startWeight:0, notes:"Hold 30-60s"},
-  {name:"Russian Twists", sets:3, reps:20, startWeight:15, notes:"One DB"},
-  {name:"Dumbbell Side Bends", sets:3, reps:15, startWeight:25, notes:"Each side"},
-  {name:"Lying Leg Raises", sets:3, reps:12, startWeight:0, notes:"Slow and controlled"}
-]},
-4: { name: "Upper Body Pull", exercises:[
-  {name:"Bent Over Rows", sets:5, reps:5, startWeight:35, notes:"Pull to hip"},
-  {name:"Single Arm Row", sets:4, reps:8, startWeight:40, notes:"Each arm"},
-  {name:"Dumbbell Pullover", sets:4, reps:10, startWeight:30, notes:"Chest/back combo"},
-  {name:"Hammer Curls", sets:4, reps:10, startWeight:20, notes:"Neutral grip"},
-  {name:"Reverse Flyes", sets:3, reps:12, startWeight:12, notes:"Rear delts"}
-]},
-5: { name: "Full Body & Cardio", exercises:[
-  {name:"Dumbbell Clean & Press", sets:4, reps:8, startWeight:25, notes:"Explosive"},
-  {name:"Goblet Squats", sets:4, reps:8, startWeight:40, notes:"Similar to Day 2"},
-  {name:"Push-ups", sets:3, reps:15, startWeight:0, notes:"On knees if needed"},
-  {name:"Dumbbell Swings", sets:3, reps:15, startWeight:30, notes:"Hip drive"},
-  {name:"Treadmill Intervals", sets:1, reps:15, startWeight:0, notes:"15 min"}
-]}
+  1: { name: "Upper Body Push", exercises: [
+    { name:"Incline Dumbbell Press", sets:5, reps:5, startWeight:25, notes:"Focus on upper chest" },
+    { name:"Standing Overhead Press", sets:5, reps:5, startWeight:20, notes:"Strict form" },
+    { name:"Dumbbell Floor Press", sets:5, reps:5, startWeight:30, notes:"Protect shoulders" },
+    { name:"Lateral Raises", sets:3, reps:12, startWeight:10, notes:"Slight bend in elbow" },
+    { name:"Overhead Tricep Extension", sets:3, reps:10, startWeight:20, notes:"Single DB, both arms" }
+  ]},
+  2: { name: "Lower Body", exercises: [
+    { name:"Goblet Squats", sets:5, reps:5, startWeight:40, notes:"Hold one DB at chest" },
+    { name:"Romanian Deadlifts", sets:5, reps:5, startWeight:30, notes:"Hinge at hips" },
+    { name:"Bulgarian Split Squats", sets:4, reps:8, startWeight:20, notes:"Each leg" },
+    { name:"Dumbbell Lunges", sets:3, reps:10, startWeight:20, notes:"Each leg, walking" },
+    { name:"Calf Raises", sets:3, reps:15, startWeight:30, notes:"On step, hold DBs" }
+  ]},
+  3: { name: "Cardio & Core", exercises: [
+    { name:"Treadmill Intervals", sets:1, reps:20, startWeight:0, notes:"20 min total" },
+    { name:"Plank", sets:3, reps:1, startWeight:0, notes:"Hold 30-60s" },
+    { name:"Russian Twists", sets:3, reps:20, startWeight:15, notes:"One DB" },
+    { name:"Dumbbell Side Bends", sets:3, reps:15, startWeight:25, notes:"Each side" },
+    { name:"Lying Leg Raises", sets:3, reps:12, startWeight:0, notes:"Slow and controlled" }
+  ]},
+  4: { name: "Upper Body Pull", exercises: [
+    { name:"Bent Over Rows", sets:5, reps:5, startWeight:35, notes:"Pull to hip" },
+    { name:"Single Arm Row", sets:4, reps:8, startWeight:40, notes:"Each arm" },
+    { name:"Dumbbell Pullover", sets:4, reps:10, startWeight:30, notes:"Chest/back combo" },
+    { name:"Hammer Curls", sets:4, reps:10, startWeight:20, notes:"Neutral grip" },
+    { name:"Reverse Flyes", sets:3, reps:12, startWeight:12, notes:"Rear delts" }
+  ]},
+  5: { name: "Full Body & Cardio", exercises: [
+    { name:"Dumbbell Clean & Press", sets:4, reps:8, startWeight:25, notes:"Explosive" },
+    { name:"Goblet Squats", sets:4, reps:8, startWeight:40, notes:"Similar to Day 2" },
+    { name:"Push-ups", sets:3, reps:15, startWeight:0, notes:"On knees if needed" },
+    { name:"Dumbbell Swings", sets:3, reps:15, startWeight:30, notes:"Hip drive" },
+    { name:"Treadmill Intervals", sets:1, reps:15, startWeight:0, notes:"15 min" }
+  ]}
 };
 
+// ----- DataStore -----
 const DataStore=(function(){
 const prefix='prog_v1_';
-function key(...parts){return prefix+parts.join('|');}
-function getJSON(k,fallback=null){try{return JSON.parse(localStorage.getItem(k))||fallback}catch(e){return fallback;}}
-function setJSON(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
-function progressKey(cycle,week,day,exIdx,set){return key('p',cycle,week,day,exIdx,'s'+set);}
-function weightKey(cycle,week,day,exIdx){return key('w',cycle,week,day,exIdx);}
-function adjKey(cycle,week,day,exIdx){return key('a',cycle,week,day,exIdx);}
+function key(...parts){ return prefix+parts.join('|'); }
+function getJSON(k,fallback=null){ try { const raw=localStorage.getItem(k); return raw?JSON.parse(raw):fallback; } catch(e){return fallback;} }
+function setJSON(k,v){ try { localStorage.setItem(k,JSON.stringify(v)); } catch(e){} }
+function progressKey(cycle, week, day, exIdx, set){ return key('p',cycle,week,day,exIdx,'s'+set); }
+function weightKey(cycle, week, day, exIdx){ return key('w',cycle,week,day,exIdx); }
+function adjKey(cycle, week, day, exIdx){ return key('a',cycle,week,day,exIdx); }
+
 return {
-getCycle(){return parseInt(localStorage.getItem(key('currentCycle'))||'1',10);},
-setCycle(v){localStorage.setItem(key('currentCycle'),String(v));},
-getWeek(){return parseInt(localStorage.getItem(key('currentWeek'))||'1',10);},
-setWeek(v){localStorage.setItem(key('currentWeek'),String(v));},
-saveProgress(cycle,week,day,exIdx,setNum,value){localStorage.setItem(progressKey(cycle,week,day,exIdx,setNum),value);},
-getProgress(cycle,week,day,exIdx,setNum){return localStorage.getItem(progressKey(cycle,week,day,exIdx,setNum))||null;},
-saveWeight(cycle,week,day,exIdx,weight){localStorage.setItem(weightKey(cycle,week,day,exIdx),String(weight));},
-getSavedWeight(cycle,week,day,exIdx){const v=localStorage.getItem(weightKey(cycle,week,day,exIdx));return v!==null?parseFloat(v):null;},
-saveAdjustment(cycle,week,day,exIdx,adj){localStorage.setItem(adjKey(cycle,week,day,exIdx),String(adj));},
-getAdjustment(cycle,week,day,exIdx){const v=localStorage.getItem(adjKey(cycle,week,day,exIdx));return v!==null?parseFloat(v):null;},
-exportCSV(){const rows=[['key','value']];for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k.startsWith(prefix))rows.push([k,localStorage.getItem(k)]);}return rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');},
-resetAll(){for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k.startsWith(prefix))localStorage.removeItem(k);}}
+  getCycle(){ return parseInt(localStorage.getItem(key('currentCycle'))||'1',10); },
+  setCycle(v){ localStorage.setItem(key('currentCycle'),String(v)); },
+  getWeek(){ return parseInt(localStorage.getItem(key('currentWeek'))||'1',10); },
+  setWeek(v){ localStorage.setItem(key('currentWeek'),String(v)); },
+  saveProgress(cycle, week, day, exIdx, setNum, value){ localStorage.setItem(progressKey(cycle,week,day,exIdx,setNum), value); },
+  getProgress(cycle, week, day, exIdx, setNum){ return localStorage.getItem(progressKey(cycle,week,day,exIdx,setNum))||null; },
+  saveWeight(cycle, week, day, exIdx, weight){ localStorage.setItem(weightKey(cycle,week,day,exIdx),String(weight)); },
+  getSavedWeight(cycle, week, day, exIdx){ const v=localStorage.getItem(weightKey(cycle,week,day,exIdx)); return v!==null?parseFloat(v):null; },
+  saveAdjustment(cycle, week, day, exIdx, adj){ localStorage.setItem(adjKey(cycle,week,day,exIdx),String(adj)); },
+  getAdjustment(cycle, week, day, exIdx){ const v=localStorage.getItem(adjKey(cycle,week,day,exIdx)); return v!==null?parseFloat(v):null; },
+  exportCSV(){ const rows=[['key','value']]; for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i); if(k && k.startsWith(prefix)) rows.push([k,localStorage.getItem(k)]);} return rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n'); },
+  resetAll(){ for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i); if(k&&k.startsWith(prefix)) localStorage.removeItem(k); } }
 };
 })();
 
-function getWeekType(week){return(week%4===0)?'deload':'normal';}
+// ----- Helpers -----
+function getWeekType(week){ return (week%4===0)?'deload':'normal'; }
 
-function getExercisePerformance(cycle,week,day,exIdx,totalSets){
-let completed=0,failed=0;
+function getExercisePerformance(cycle, week, day, exIdx, totalSets){
+let completed=0, failed=0;
 for(let s=1;s<=totalSets;s++){
 const p=DataStore.getProgress(cycle,week,day,exIdx,s);
-if(p==='complete')completed++;
-else if(p==='failed')failed++;
+if(p==='complete') completed++; else if(p==='failed') failed++;
 }
-return {completed,failed,total:totalSets};
+return {completed, failed, total: totalSets};
 }
 
-function didCompleteLastWeek(cycle,week,day,exIdx,totalSets){
-let prevCycle=cycle,prevWeek=week-1;
-if(prevWeek<1){prevCycle=cycle-1;prevWeek=12;}
-if(prevCycle<1)return true;
+function didCompleteLastWeek(cycle, week, day, exIdx, totalSets){
+let prevCycle=cycle, prevWeek=week-1;
+if(prevWeek<1){ prevCycle=cycle-1; prevWeek=12; }
+if(prevCycle<1) return true;
 const perf=getExercisePerformance(prevCycle,prevWeek,day,exIdx,totalSets);
 return perf.completed===totalSets;
 }
 
-function computeWeight(startWeight,cycle,week,day,exIdx,totalSets){
-if(!startWeight)return 0;
+function computeWeight(startWeight, cycle, week, day, exIdx, totalSets){
+if(!startWeight) return 0;
+try{
 const weekType=getWeekType(week);
 const saved=DataStore.getSavedWeight(cycle,week,day,exIdx);
-if(saved!==null)return weekType==='deload'?Math.round(saved*0.7):saved;
-let prevCycle=cycle,prevWeek=week-1;if(prevWeek<1){prevCycle=cycle-1;prevWeek=12;}
-if(prevCycle<1){DataStore.saveWeight(cycle,week,day,exIdx,startWeight);return startWeight;}
+if(saved!==null) return weekType==='deload'?Math.round(saved*0.7):saved;
+if(cycle===1 && week===1){ DataStore.saveWeight(cycle,week,day,exIdx,startWeight); return startWeight; }
+let prevCycle=cycle, prevWeek=week-1;
+if(prevWeek<1){ prevCycle=cycle-1; prevWeek=12; }
+if(prevCycle<1){ DataStore.saveWeight(cycle,week,day,exIdx,startWeight); return startWeight; }
 const prevWeight=computeWeight(startWeight,prevCycle,prevWeek,day,exIdx,totalSets);
 const manualAdj=DataStore.getAdjustment(prevCycle,prevWeek,day,exIdx);
 let newWeight=prevWeight;
-if(manualAdj!==null)newWeight=prevWeight+manualAdj;
-else{const prevWeekType=getWeekType(prevWeek);const completedLast=didCompleteLastWeek(cycle,week,day,exIdx,totalSets);if(completedLast&&prevWeekType!=='deload')newWeight=prevWeight+5;}
+if(manualAdj!==null) newWeight=prevWeight+manualAdj;
+else{ const prevWeekType=getWeekType(prevWeek); const completedLast=didCompleteLastWeek(cycle,week,day,exIdx,totalSets); if(completedLast && prevWeekType!=='deload') newWeight+=5; }
 DataStore.saveWeight(cycle,week,day,exIdx,newWeight);
 return weekType==='deload'?Math.round(newWeight*0.7):newWeight;
+}catch(err){return startWeight;}
 }
 
-// ----- UI Module -----
+// ----- UI -----
 const UI=(function(){
 const dom={
 cycleInfo:document.getElementById('cycleInfo'),
@@ -179,138 +182,154 @@ exportBtn:document.getElementById('exportBtn'),
 resetBtn:document.getElementById('resetBtn')
 };
 
-function clearChildren(el){while(el.firstChild)el.removeChild(el.firstChild);}
-function renderCycleInfo(cycle,week){dom.cycleInfo.textContent=`Cycle ${cycle} — Week ${week} of 12 (${getWeekType(week)})`;}
-
-let onWeekClick=function(){}; // will be overwritten by controller
+function renderCycleInfo(cycle,week){ dom.cycleInfo.textContent=`Cycle ${cycle} — Week ${week} of 12 (${getWeekType(week)})`; }
+function clearChildren(el){ while(el.firstChild) el.removeChild(el.firstChild); }
 
 function renderWeekSelector(currentWeek){
 clearChildren(dom.weekSelector);
-for(let w=1;w<=12;w++){
+for(let w=1; w<=12; w++){
 const btn=document.createElement('button');
-btn.type='button';
-btn.className='week-btn';
+btn.type='button'; btn.className='week-btn';
 btn.textContent='Week '+w;
-if(getWeekType(w)==='deload')btn.classList.add('deload');
-if(w===currentWeek)btn.classList.add('active');
-btn.dataset.week=w;
+if(getWeekType(w)==='deload') btn.classList.add('deload');
+if(w===currentWeek) btn.classList.add('active');
+btn.dataset.week=String(w);
 btn.addEventListener('click',onWeekClick);
 dom.weekSelector.appendChild(btn);
 }
 }
 
-function renderDaysGrid(cycle,week){
+function renderDaysGrid(cycle, week){
 clearChildren(dom.grid);
-Object.keys(PROGRAM).map(k=>parseInt(k,10)).sort((a,b)=>a-b).forEach(day=>{
+const days=Object.keys(PROGRAM).map(k=>parseInt(k,10)).sort((a,b)=>a-b);
+days.forEach(day=>{
 const def=PROGRAM[day];
 const card=document.createElement('div');
-card.className='card day-card'; card.tabIndex=0; card.dataset.day=day;
-card.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center"><strong>Day ${day}</strong><span class="muted small">${def.name}</span></div><div class="small muted" style="margin-top:8px">${def.exercises.length} exercises</div>`;
+card.className='card day-card';
+card.tabIndex=0;
+card.dataset.day=String(day);
+card.innerHTML=`
+<div style="display:flex;justify-content:space-between;align-items:center">
+  <strong>Day ${day}</strong>
+  <span class="muted small">${def.name}</span>
+</div>
+<div class="small muted" style="margin-top:8px">
+  ${def.exercises.length} exercises
+</div>`;
 card.addEventListener('click',()=>selectDay(day));
-card.addEventListener('keydown',ev=>{if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();selectDay(day);}});
+card.addEventListener('keydown',(ev)=>{ if(ev.key==='Enter'||ev.key===' '){ ev.preventDefault(); selectDay(day); } });
 dom.grid.appendChild(card);
 });
 }
 
 function renderWorkoutDetail(cycle,week,day){
-if(!day){dom.detail.classList.add('hidden');dom.detail.innerHTML='';return;}
-dom.detail.classList.remove('hidden');clearChildren(dom.detail);
+if(!day){ dom.detail.classList.add('hidden'); dom.detail.innerHTML=''; return; }
+dom.detail.classList.remove('hidden'); clearChildren(dom.detail);
 const def=PROGRAM[day];
 const heading=document.createElement('div');
-heading.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center"><div><strong>Day ${day} — ${def.name}</strong><div class="muted small">${def.exercises.length} exercises</div></div><div class="muted small">Week ${week} (${getWeekType(week)})</div></div>`;
+heading.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center">
+<div><strong>Day ${day} — ${def.name}</strong><div class="muted small">${def.exercises.length} exercises</div></div>
+<div class="muted small">Week ${week} (${getWeekType(week)})</div>
+</div>`;
 dom.detail.appendChild(heading);
 
 // exercises
 def.exercises.forEach((ex,idx)=>{
 const exIdx=idx+1;
-const exCard=document.createElement('div'); exCard.className='exercise-card';
+const exCard=document.createElement('div');
+exCard.className='exercise-card';
 const weight=computeWeight(ex.startWeight,cycle,week,day,exIdx,ex.sets);
 const perf=getExercisePerformance(cycle,week,day,exIdx,ex.sets);
-exCard.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:flex-start"><div><div style="font-weight:700">${ex.name}</div><div class="muted small">${ex.notes||''}</div></div><div style="text-align:right"><div style="font-weight:700">${weight} lbs</div><div class="muted small">Sets ${perf.completed}/${perf.total}</div></div></div><div style="margin-top:10px" id="ex_${day}_${exIdx}"></div>`;
+exCard.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:flex-start">
+<div>
+  <div style="font-weight:700">${ex.name}</div>
+  <div class="muted small">${ex.notes||''}</div>
+</div>
+<div style="text-align:right">
+  <div style="font-weight:700">${weight} lbs</div>
+  <div class="muted small">Sets ${perf.completed}/${perf.total}</div>
+</div>
+</div>
+<div style="margin-top:10px" id="ex_${day}_${exIdx}"></div>`;
 dom.detail.appendChild(exCard);
 
 // set buttons
 const placeholder=exCard.querySelector(`#ex_${day}_${exIdx}`);
 const setRow=document.createElement('div'); setRow.className='set-buttons';
 for(let s=1;s<=ex.sets;s++){
-const b=document.createElement('button'); b.type='button'; b.className='set-btn'; 
-b.innerHTML='<span>✓</span><span>✗</span>';
-b.addEventListener('click',ev=>{
-  const rect=b.getBoundingClientRect();
-  const x=ev.clientX-rect.left;
-  const cur=DataStore.getProgress(cycle,week,day,exIdx,s);
-  if(ev.detail===2){ // double click clears
-    localStorage.removeItem(`prog_v1_p|${cycle}|${week}|${day}|${exIdx}|s${s}`);
-  } else if(x<rect.width/2){
-    DataStore.saveProgress(cycle,week,day,exIdx,s,'complete');
-  } else {
-    DataStore.saveProgress(cycle,week,day,exIdx,s,'failed');
-  }
-  renderWorkoutDetail(cycle,week,day); renderDaysGrid(cycle,week);
+const b=document.createElement('button'); b.type='button'; b.className='set-btn'; b.textContent=`Set ${s}`;
+b.style.position='relative'; b.style.padding='8px 0'; b.style.flex='1'; b.style.display='inline-block';
+const state=DataStore.getProgress(cycle,week,day,exIdx,s);
+updateSetButtonStyle(b,state);
+b.addEventListener('click',(ev)=>{
+const rect=b.getBoundingClientRect();
+const clickX=ev.clientX-rect.left;
+const half=rect.width/2;
+const cur=DataStore.getProgress(cycle,week,day,exIdx,s);
+let nextState=null;
+if(ev.detail===2){ nextState=null; }
+else if(clickX<half){ nextState='complete'; }
+else{ nextState='failed'; }
+if(nextState===null){ localStorage.removeItem(`prog_v1_p|${cycle}|${week}|${day}|${exIdx}|s${s}`); }
+else{ DataStore.saveProgress(cycle,week,day,exIdx,s,nextState); }
+updateSetButtonStyle(b,nextState);
+renderDaysGrid(cycle,week);
 });
 setRow.appendChild(b);
 }
 placeholder.appendChild(setRow);
 
-// manual weight adjustments
-const adjustArea=document.createElement('div'); adjustArea.style.marginTop='12px';
-adjustArea.innerHTML='<div style="font-weight:700;margin-bottom:8px">Manual adjustments (next week)</div>';
-PROGRAM[day].exercises.forEach((ex,idx)=>{
-const exIdx=idx+1;
-const curAdj=DataStore.getAdjustment(cycle,week,day,exIdx);
-const wrap=document.createElement('div'); wrap.style.marginBottom='8px';
-wrap.innerHTML=`<div class="muted small">${ex.name} — current manual adj: ${curAdj===null?'none':curAdj+' lbs'}</div>`;
-const btns=document.createElement('div'); btns.style.marginTop='6px';
-['+10','+5','+3','0','-3','-5'].forEach(val=>{
-const btn=document.createElement('button'); btn.type='button'; btn.className='week-btn'; btn.style.padding='6px 8px'; btn.textContent=val;
-btn.addEventListener('click',()=>{const parsed=val==='0'?0:parseInt(val,10);DataStore.saveAdjustment(cycle,week,day,exIdx,parsed);renderWorkoutDetail(cycle,week,day);});
-btns.appendChild(btn);
+// manual weight adjustment
+const adjRow=document.createElement('div'); adjRow.className='set-buttons'; adjRow.style.marginTop='8px';
+const manualBtns=[-5,-3,-1,0,3,5,10,'Clear'];
+manualBtns.forEach(val=>{
+const btn=document.createElement('button'); btn.type='button'; btn.className='set-btn';
+btn.textContent=val==='Clear'?val: (val>0?`+${val}`:`${val}`);
+const savedAdj=DataStore.getAdjustment(cycle,week,day,exIdx);
+if((val==='Clear' && savedAdj===null) || savedAdj===val) btn.style.background=val==='Clear'?'#ef4444':'#3b82f6', btn.style.color='#fff';
+btn.addEventListener('click',()=>{ 
+if(val==='Clear'){ localStorage.removeItem(`prog_v1_a|${cycle}|${week}|${day}|${exIdx}`); }
+else{ DataStore.saveAdjustment(cycle,week,day,exIdx,val); }
+renderWorkoutDetail(cycle,week,day);
 });
-const clr=document.createElement('button'); clr.type='button'; clr.className='week-btn'; clr.style.marginLeft='8px'; clr.textContent='Clear';
-clr.addEventListener('click',()=>{localStorage.removeItem(`prog_v1_a|${cycle}|${week}|${day}|${exIdx}`);renderWorkoutDetail(cycle,week,day);});
-btns.appendChild(clr);
-wrap.appendChild(btns); adjustArea.appendChild(wrap);
+adjRow.appendChild(btn);
 });
-dom.detail.appendChild(adjustArea);
+placeholder.appendChild(adjRow);
+
+});
+
 }
 
-function setAlert(text,show=true){if(!text||!show){dom.weekAlert.classList.add('hidden');dom.weekAlert.textContent='';return;}dom.weekAlert.classList.remove('hidden');dom.weekAlert.textContent=text;}
-
-return {renderCycleInfo,renderWeekSelector,renderDaysGrid,renderWorkoutDetail,setAlert,
-attachWeekHandler:function(fn){onWeekClick=fn;},
-selectDayEl:function(day){document.querySelectorAll('.day-card').forEach(el=>{if(el.dataset.day==day)el.classList.add('selected');else el.classList.remove('selected');})}
-};
-})();
-
-// ---- Controller ----
-(function(){
-let currentCycle=DataStore.getCycle();
-let currentWeek=DataStore.getWeek();
-let selectedDay=null;
-
-UI.attachWeekHandler(function(e){
-const week=parseInt(e.currentTarget.dataset.week,10);
-if(!isFinite(week))return;
-currentWeek=week; DataStore.setWeek(week);
-selectedDay=null; render();
-});
-
-window.selectDay=function(day){selectedDay=day; UI.selectDayEl(day); UI.renderWorkoutDetail(currentCycle,currentWeek,day);};
-
-function render(){
-UI.renderCycleInfo(currentCycle,currentWeek);
-UI.renderWeekSelector(currentWeek);
-UI.renderDaysGrid(currentCycle,currentWeek);
-UI.renderWorkoutDetail(currentCycle,currentWeek,selectedDay);
-UI.setAlert('',false);
+function updateSetButtonStyle(btn,state){
+btn.style.background='#fff'; btn.style.color='#111'; btn.style.borderColor='#d1d5db';
+if(state==='complete'){ btn.style.background='#10b981'; btn.style.color='#fff'; btn.style.borderColor='#10b981'; }
+else if(state==='failed'){ btn.style.background='#ef4444'; btn.style.color='#fff'; btn.style.borderColor='#ef4444'; }
 }
 
-UI.dom?.exportBtn?.addEventListener('click',()=>{const csv=DataStore.exportCSV();const blob=new Blob([csv],{type:'text/csv'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='workout-export.csv';document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);});
-UI.dom?.resetBtn?.addEventListener('click',()=>{if(!confirm('Reset all saved program data?'))return;DataStore.resetAll();location.reload();});
+// ----- events -----
+function onWeekClick(ev){ const week=parseInt(ev.currentTarget.dataset.week,10); DataStore.setWeek(week); renderUI(); }
+function selectDay(day){ renderWorkoutDetail(DataStore.getCycle(),DataStore.getWeek(),day); }
 
-render();
-window._workoutApp={DataStore,UI,PROGRAM,get state(){return {cycle:currentCycle,week:currentWeek,selectedDay};},computeWeight,render};
-})();
+// export / reset
+UI.exportBtn.addEventListener('click',()=>{ 
+const blob=new Blob([DataStore.exportCSV()],{type:'text/csv'}); 
+const url=URL.createObjectURL(blob); 
+const a=document.createElement('a'); a.href=url; a.download='workout_progress.csv'; a.click(); 
+URL.revokeObjectURL(url);
+});
+UI.resetBtn.addEventListener('click',()=>{ if(confirm('Clear all progress?')){ DataStore.resetAll(); renderUI(); } });
+
+// render full UI
+function renderUI(){
+const cycle=DataStore.getCycle(), week=DataStore.getWeek();
+renderCycleInfo(cycle,week);
+renderWeekSelector(week);
+renderDaysGrid(cycle,week);
+renderWorkoutDetail(cycle,week,null);
+}
+
+renderUI();
+
 })();
 </script>
 </body>
