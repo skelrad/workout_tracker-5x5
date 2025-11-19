@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Progressive 5x5 — Manual Weights</title>
+<title>Progressive 5x5 — Manual-only Progression</title>
 <style>
 :root{
   --accent:#3b82f6;
   --muted:#6b7280;
   --success:#10b981;
   --danger:#ef4444;
-  --split-left: rgba(16,185,129,0.12);
+  --split-left: rgba(16,185,129,0.14);
   --split-right: rgba(239,68,68,0.12);
 }
 *{box-sizing:border-box}
@@ -34,12 +34,12 @@ p.lead{margin:0;color:var(--muted)}
 .set-buttons{display:flex;gap:8px;flex-wrap:wrap}
 .set-btn{
   position:relative;
-  padding:8px 10px;
+  padding:6px 10px;
   border-radius:8px;
   border:1px solid #d1d5db;
   background:#fff;
   cursor:pointer;
-  min-width:64px;
+  min-width:68px;
   user-select:none;
   display:inline-flex;
   align-items:center;
@@ -47,14 +47,14 @@ p.lead{margin:0;color:var(--muted)}
   overflow:hidden;
 }
 .set-btn .half{display:inline-block;width:50%;text-align:center;padding:6px 8px;pointer-events:none}
-.set-btn .half.left{background:var(--split-left);}
-.set-btn .half.right{background:var(--split-right);}
+.set-btn .half.left{background:var(--split-left)}
+.set-btn .half.right{background:var(--split-right)}
 .set-btn.pass{background:var(--success);border-color:var(--success);color:#fff}
 .set-btn.fail{background:var(--danger);border-color:var(--danger);color:#fff}
 .set-btn:hover{transform:translateY(-2px);transition:transform .08s}
 .adjust-btn{padding:6px 8px;border-radius:6px;border:1px solid #d1d5db;background:#fff;cursor:pointer}
 .adjust-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
-.adjust-clear{background:#fff;border:1px solid #ef4444;color:#ef4444;padding:6px 8px;border-radius:6px;cursor:pointer}
+.adjust-clear{padding:6px 8px;border-radius:6px;border:1px solid #ef4444;background:#fff;color:#ef4444;cursor:pointer}
 .hidden{display:none}
 .muted{color:var(--muted);font-size:.95rem}
 .flex{display:flex;gap:12px;align-items:center}
@@ -68,8 +68,8 @@ footer{margin-top:18px;text-align:center;color:var(--muted);font-size:0.9rem}
 <body>
   <div class="container">
     <div class="card">
-      <h1>Progressive 5x5 — Manual Weights</h1>
-      <p class="lead">All progression is manual. Use the adjustment buttons to set the next week's baseline.</p>
+      <h1>Progressive 5x5 — Manual-only Progression</h1>
+      <p class="lead">All progressions are manual. Use the "Change for Next Week" controls under each exercise.</p>
       <div id="cycleInfo" class="muted small" style="margin-top:10px"></div>
     </div>
 
@@ -81,24 +81,27 @@ footer{margin-top:18px;text-align:center;color:var(--muted);font-size:0.9rem}
 
       <div class="spacer"></div>
 
-      <div style="min-width:220px;text-align:right">
+      <div style="min-width:240px;text-align:right">
         <button id="exportBtn" class="week-btn" title="Export CSV">Download CSV</button>
         <button id="resetBtn" class="week-btn" title="Reset progress">Reset</button>
       </div>
     </div>
 
     <div id="weekAlert" class="alert hidden" role="status"></div>
+
     <div id="workoutGrid" class="grid"></div>
+
     <div id="workoutDetail" class="card hidden" aria-live="polite"></div>
 
-    <footer class="muted">Data stored locally in your browser (localStorage).</footer>
+    <footer class="muted">LocalStorage — data saved per browser.</footer>
   </div>
 
 <script>
 (function(){
   'use strict';
 
-  /* ---------- PROGRAM (full) ---------- */
+  /* ---------- Program (full) ---------- */
+  // For cardio special items, include startTime/startReps/startPerSide fields
   const PROGRAM = {
     1: { name: "Upper Body Push", exercises: [
       { name:"Incline Dumbbell Press", sets:5, startWeight:25, notes:"Focus on upper chest" },
@@ -115,11 +118,11 @@ footer{margin-top:18px;text-align:center;color:var(--muted);font-size:0.9rem}
       { name:"Calf Raises", sets:3, startWeight:30, notes:"On step, hold DBs" }
     ]},
     3: { name: "Cardio & Core", exercises: [
-      { name:"Treadmill Intervals", sets:1, startWeight:0, notes:"20 min total" },
-      { name:"Plank", sets:3, startWeight:0, notes:"Hold 30-60s" },
-      { name:"Russian Twists", sets:3, startWeight:15, notes:"One DB" },
-      { name:"Dumbbell Side Bends", sets:3, startWeight:25, notes:"Each side" },
-      { name:"Lying Leg Raises", sets:3, startWeight:0, notes:"Slow and controlled" }
+      { name:"Treadmill Intervals", sets:1, startWeight:0, notes:"Interval session — follow time/pace (no adjustments)" },
+      { name:"Plank", sets:5, startTime:30, notes:"Hold:" },
+      { name:"Russian Twists", sets:5, startPerSide:10, notes:"10/side" },
+      { name:"Dumbbell Side Bends", sets:3, startWeight:25, notes:"10 Each Side" },
+      { name:"Lying Leg Raises", sets:5, startReps:10, notes:"" }
     ]},
     4: { name: "Upper Body Pull", exercises: [
       { name:"Bent Over Rows", sets:5, startWeight:35, notes:"Pull to hip" },
@@ -133,33 +136,35 @@ footer{margin-top:18px;text-align:center;color:var(--muted);font-size:0.9rem}
       { name:"Goblet Squats", sets:4, startWeight:40, notes:"Similar to Day 2" },
       { name:"Push-ups", sets:3, startWeight:0, notes:"On knees if needed" },
       { name:"Dumbbell Swings", sets:3, startWeight:30, notes:"Hip drive" },
-      { name:"Treadmill Intervals", sets:1, startWeight:0, notes:"15 min" }
+      { name:"Treadmill Intervals", sets:1, startWeight:0, notes:"Interval session — follow time/pace (no adjustments)" }
     ]}
   };
 
-  /* ---------- DataStore (manual weights only) ---------- */
-  const prefix = 'prog_manual_v1_';
-  function key(...parts){ return prefix + parts.join('|'); }
+  /* ---------- Storage helpers ---------- */
+  const PREFIX = 'prog_manual_v2_';
+  function key(...parts){ return PREFIX + parts.join('|'); }
 
-  const DataStore = {
+  const DS = {
+    // global week storage
     getWeek(){ return parseInt(localStorage.getItem(key('week')) || '1', 10); },
     setWeek(w){ localStorage.setItem(key('week'), String(w)); },
-    // progress per set (complete/failed)
-    saveProgress(week, day, exIdx, setNum, value){ localStorage.setItem(key('p', week, day, exIdx, 's' + setNum), value); },
-    getProgress(week, day, exIdx, setNum){ return localStorage.getItem(key('p', week, day, exIdx, 's' + setNum)) || null; },
-    removeProgress(week, day, exIdx, setNum){ localStorage.removeItem(key('p', week, day, exIdx, 's' + setNum)); },
-    // saved weight for a specific week/day/ex (absolute baseline)
-    saveWeight(week, day, exIdx, weight){ localStorage.setItem(key('w', week, day, exIdx), String(weight)); },
-    getSavedWeight(week, day, exIdx){ const v = localStorage.getItem(key('w', week, day, exIdx)); return v !== null ? parseFloat(v) : null; },
-    removeSavedWeight(week, day, exIdx){ localStorage.removeItem(key('w', week, day, exIdx)); },
-    // next-week adjustment saved as absolute weight (we'll store weight for nextWeek)
-    saveNextWeight(nextWeek, day, exIdx, weight){ localStorage.setItem(key('w', nextWeek, day, exIdx), String(weight)); },
+
+    // progress per set (week, day, exIdx, set)
+    saveProgress(week, day, exIdx, setNum, val){ localStorage.setItem(key('p', week, day, exIdx, 's'+setNum), String(val)); },
+    getProgress(week, day, exIdx, setNum){ return localStorage.getItem(key('p', week, day, exIdx, 's'+setNum)) || null; },
+    removeProgress(week, day, exIdx, setNum){ localStorage.removeItem(key('p', week, day, exIdx, 's'+setNum)); },
+
+    // saved absolute weight/time/reps for specific week/day/ex
+    saveValue(week, day, exIdx, val){ localStorage.setItem(key('v', week, day, exIdx), String(val)); },
+    getValue(week, day, exIdx){ const v = localStorage.getItem(key('v', week, day, exIdx)); return v !== null ? Number(v) : null; },
+    removeValue(week, day, exIdx){ localStorage.removeItem(key('v', week, day, exIdx)); },
+
     // export/reset
     exportCSV(){
-      const rows=[['key','value']];
+      const rows = [['key','value']];
       for(let i=0;i<localStorage.length;i++){
         const k = localStorage.key(i);
-        if(k && k.startsWith(prefix)) rows.push([k, localStorage.getItem(k)]);
+        if(k && k.startsWith(PREFIX)) rows.push([k, localStorage.getItem(k)]);
       }
       return rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
     },
@@ -167,13 +172,13 @@ footer{margin-top:18px;text-align:center;color:var(--muted);font-size:0.9rem}
       const toRemove = [];
       for(let i=0;i<localStorage.length;i++){
         const k = localStorage.key(i);
-        if(k && k.startsWith(prefix)) toRemove.push(k);
+        if(k && k.startsWith(PREFIX)) toRemove.push(k);
       }
       toRemove.forEach(k => localStorage.removeItem(k));
     }
   };
 
-  /* ---------- UI helpers ---------- */
+  /* ---------- DOM refs ---------- */
   const dom = {
     cycleInfo: document.getElementById('cycleInfo'),
     weekSelector: document.getElementById('weekSelector'),
@@ -186,21 +191,28 @@ footer{margin-top:18px;text-align:center;color:var(--muted);font-size:0.9rem}
 
   function clear(el){ while(el.firstChild) el.removeChild(el.firstChild); }
 
-  function getDisplayedWeight(week, day, exIdx, startWeight){
-    // If a saved weight exists for this week, use it. Else fallback to startWeight.
-    const saved = DataStore.getSavedWeight(week, day, exIdx);
-    return saved !== null ? saved : startWeight;
+  /* ---------- Utilities for displayed values ---------- */
+  function getDisplayedValue(week, day, exIdx, exDef){
+    // exDef may have startWeight, startTime, startPerSide, startReps
+    const saved = DS.getValue(week, day, exIdx);
+    if (saved !== null) return saved;
+    // fallback ordering
+    if (exDef.hasOwnProperty('startWeight')) return exDef.startWeight;
+    if (exDef.hasOwnProperty('startTime')) return exDef.startTime;
+    if (exDef.hasOwnProperty('startPerSide')) return exDef.startPerSide;
+    if (exDef.hasOwnProperty('startReps')) return exDef.startReps;
+    return 0;
   }
 
+  /* ---------- Rendering ---------- */
   function renderWeekSelector(currentWeek){
     clear(dom.weekSelector);
     for(let w=1; w<=12; w++){
       const btn = document.createElement('button');
-      btn.type='button'; btn.className='week-btn'; btn.textContent='Week ' + w;
+      btn.type='button'; btn.className='week-btn'; btn.textContent = 'Week ' + w;
       if (w === currentWeek) btn.classList.add('active');
       if (w % 4 === 0) btn.classList.add('deload');
-      btn.dataset.week = String(w);
-      btn.addEventListener('click', ()=>{ DataStore.setWeek(w); render(); });
+      btn.addEventListener('click', ()=>{ DS.setWeek(w); render(); });
       dom.weekSelector.appendChild(btn);
     }
   }
@@ -214,16 +226,24 @@ footer{margin-top:18px;text-align:center;color:var(--muted);font-size:0.9rem}
       card.className = 'card day-card';
       card.tabIndex = 0;
       card.dataset.day = String(day);
-      card.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center"><strong>Day ${day}</strong><span class="muted small">${def.name}</span></div><div class="small muted" style="margin-top:8px">${def.exercises.length} exercises</div>`;
+      card.innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <strong>Day ${day}</strong>
+          <span class="muted small">${def.name}</span>
+        </div>
+        <div class="small muted" style="margin-top:8px">${def.exercises.length} exercises</div>`;
       card.addEventListener('click', ()=> selectDay(day));
-      card.addEventListener('keydown', ev=>{ if(ev.key === 'Enter' || ev.key === ' '){ ev.preventDefault(); selectDay(day); } });
+      card.addEventListener('keydown', ev => { if(ev.key === 'Enter' || ev.key === ' '){ ev.preventDefault(); selectDay(day); } });
       dom.grid.appendChild(card);
     });
   }
 
-  /* ---------- Render workout & interactive controls ---------- */
   function renderWorkoutDetail(week, day){
-    if(!day){ dom.detail.classList.add('hidden'); dom.detail.innerHTML = ''; return; }
+    if (!day){
+      dom.detail.classList.add('hidden');
+      dom.detail.innerHTML = '';
+      return;
+    }
     dom.detail.classList.remove('hidden');
     clear(dom.detail);
 
@@ -237,207 +257,291 @@ footer{margin-top:18px;text-align:center;color:var(--muted);font-size:0.9rem}
 
     def.exercises.forEach((ex, idx) => {
       const exIdx = idx + 1;
-      const exCard = document.createElement('div');
-      exCard.className = 'exercise-card';
+      const exCard = document.createElement('div'); exCard.className = 'exercise-card';
 
-      const displayedWeight = getDisplayedWeight(week, day, exIdx, ex.startWeight);
+      // displayed value depends on exercise type
+      const displayed = getDisplayedValue(week, day, exIdx, ex);
+      // subtitle handling
+      let subtitleHTML = '';
+      if (ex.hasOwnProperty('startTime')) {
+        subtitleHTML = `<div class="muted small">Hold: ${displayed} s</div>`;
+      } else if (ex.hasOwnProperty('startPerSide')) {
+        subtitleHTML = `<div class="muted small">${ex.notes || ''} — ${displayed}/side</div>`;
+      } else if (ex.hasOwnProperty('startReps')) {
+        subtitleHTML = `<div class="muted small">${displayed} reps per set</div>`;
+      } else {
+        subtitleHTML = `<div class="muted small">${ex.notes || ''}</div>`;
+      }
+
       exCard.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:flex-start">
         <div>
           <div style="font-weight:700">${ex.name}</div>
-          <div class="muted small">${ex.notes || ''}</div>
+          ${subtitleHTML}
         </div>
         <div style="text-align:right">
-          <div style="font-weight:700">${displayedWeight} lbs</div>
+          <div style="font-weight:700">${(ex.hasOwnProperty('startTime') ? displayed + ' s' : (ex.hasOwnProperty('startPerSide') ? displayed + '/side' : (ex.hasOwnProperty('startReps') ? displayed + ' reps' : displayed + ' lbs')) )}</div>
         </div>
       </div>
       <div style="margin-top:10px" id="ex_${day}_${exIdx}"></div>`;
 
       dom.detail.appendChild(exCard);
 
-      // set buttons placeholder
       const placeholder = exCard.querySelector(`#ex_${day}_${exIdx}`);
-      // set button row
-      const setRow = document.createElement('div');
-      setRow.className = 'set-buttons';
-      for(let s=1; s<=ex.sets; s++){
-        const b = document.createElement('button');
-        b.type='button'; b.className='set-btn';
-        // two visual halves
-        const left = document.createElement('span'); left.className='half left'; left.textContent = '✓';
-        const right = document.createElement('span'); right.className='half right'; right.textContent = '✗';
-        b.appendChild(left); b.appendChild(right);
 
-        // set initial style based on saved progress for this week
-        const state = DataStore.getProgress(week, day, exIdx, s);
-        if(state === 'complete') b.classList.add('pass');
-        else if(state === 'failed') b.classList.add('fail');
+      // --- set buttons row (pass/fail/clear) ---
+      const setRow = document.createElement('div'); setRow.className = 'set-buttons';
+      for (let s = 1; s <= ex.sets; s++){
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'set-btn';
+        // two halves visually
+        const left = document.createElement('span'); left.className = 'half left'; left.textContent = '✓';
+        const right = document.createElement('span'); right.className = 'half right'; right.textContent = '✗';
+        btn.appendChild(left); btn.appendChild(right);
 
-        // click logic: left half = pass, right half = fail, double-click clears
-        b.addEventListener('click', function(ev){
-          const rect = b.getBoundingClientRect();
+        // initial state
+        const state = DS.getProgress(week, day, exIdx, s);
+        if (state === 'complete') btn.classList.add('pass');
+        else if (state === 'failed') btn.classList.add('fail');
+
+        btn.addEventListener('click', function(ev){
+          const rect = btn.getBoundingClientRect();
           const clickX = ev.clientX - rect.left;
           const half = rect.width / 2;
-          // double-click clears
           if (ev.detail === 2){
-            DataStore.removeProgress(week, day, exIdx, s);
-            b.classList.remove('pass','fail');
+            DS.removeProgress(week, day, exIdx, s);
+            btn.classList.remove('pass','fail');
             return;
           }
           if (clickX < half){
-            DataStore.saveProgress(week, day, exIdx, s, 'complete');
-            b.classList.remove('fail'); b.classList.add('pass');
+            DS.saveProgress(week, day, exIdx, s, 'complete');
+            btn.classList.remove('fail'); btn.classList.add('pass');
           } else {
-            DataStore.saveProgress(week, day, exIdx, s, 'failed');
-            b.classList.remove('pass'); b.classList.add('fail');
+            DS.saveProgress(week, day, exIdx, s, 'failed');
+            btn.classList.remove('pass'); btn.classList.add('fail');
           }
         });
 
-        setRow.appendChild(b);
+        setRow.appendChild(btn);
       }
       placeholder.appendChild(setRow);
 
-      // weight adjustment area (for next week)
-      const adjWrap = document.createElement('div');
-      adjWrap.style.marginTop = '12px';
-      adjWrap.innerHTML = `<div style="font-weight:700;margin-bottom:8px">Weight change for next week</div>`;
-
-      // show what is currently planned for next week (if any)
+      // --- "Change for Next Week" controls (if applicable) ---
+      // Determine nextWeek number
       const nextWeek = (week % 12) + 1;
-      const plannedNext = DataStore.getSavedWeight(nextWeek, day, exIdx);
-      const plannedRow = document.createElement('div');
-      plannedRow.className = 'muted small';
-      plannedRow.style.marginBottom = '6px';
-      plannedRow.textContent = 'Planned next-week weight: ' + (plannedNext !== null ? plannedNext + ' lbs' : 'none');
-      adjWrap.appendChild(plannedRow);
 
-      // adjustment buttons
-      const btnRow = document.createElement('div');
-      btnRow.style.display = 'flex';
-      btnRow.style.gap = '8px';
-      const deltas = [10,5,3,0,-3,-5];
-      deltas.forEach(delta => {
-        const btn = document.createElement('button');
-        btn.type='button';
-        btn.className='adjust-btn';
-        btn.textContent = (delta > 0 ? '+'+delta : String(delta));
-        // active if plannedNext equals displayedWeight+delta
-        if (plannedNext !== null && Math.round(plannedNext) === Math.round(displayedWeight + delta)){
-          btn.classList.add('active');
-        }
-        btn.addEventListener('click', ()=>{
-          // Save absolute weight for nextWeek as displayedWeight + delta
-          const nextWeight = Math.round(displayedWeight + delta);
-          DataStore.saveNextWeight(nextWeek, day, exIdx, nextWeight);
-          render(); // re-render so plannedNext updates and active state shows
+      // Treadmill intervals: no change buttons (just informative)
+      if (ex.name.toLowerCase().includes('treadmill')) {
+        const note = document.createElement('div');
+        note.className = 'muted small';
+        note.style.marginTop = '8px';
+        note.textContent = 'No next-week adjustments for treadmill intervals.';
+        placeholder.appendChild(note);
+        return;
+      }
+
+      // For Plank: time adjustments (seconds)
+      if (ex.hasOwnProperty('startTime')) {
+        const wrap = document.createElement('div'); wrap.style.marginTop = '10px';
+        wrap.innerHTML = `<div style="font-weight:700;margin-bottom:6px">Change for Next Week (seconds)</div>`;
+        const planned = DS.getValue(nextWeek, day, exIdx);
+        const plannedText = document.createElement('div'); plannedText.className='muted small'; plannedText.style.marginBottom='6px';
+        plannedText.textContent = 'Planned next-week time: ' + (planned !== null ? planned + ' s' : 'none');
+        wrap.appendChild(plannedText);
+
+        const deltas = [-30,-20,-10,0,10,20,30];
+        const row = document.createElement('div'); row.style.display='flex'; row.style.gap='8px'; row.style.flexWrap='wrap';
+        deltas.forEach(delta=>{
+          const btn = document.createElement('button'); btn.type='button'; btn.className='adjust-btn';
+          btn.textContent = (delta>0? '+'+delta : String(delta));
+          if (planned !== null && Math.round(planned) === Math.round(displayed + delta)) btn.classList.add('active');
+          btn.addEventListener('click', ()=>{
+            const nextVal = Math.round(displayed + delta);
+            DS.saveValue(nextWeek, day, exIdx, nextVal);
+            render();
+          });
+          row.appendChild(btn);
         });
-        btnRow.appendChild(btn);
-      });
+        const clr = document.createElement('button'); clr.type='button'; clr.className='adjust-clear'; clr.textContent='Clear';
+        clr.addEventListener('click', ()=>{ DS.removeValue(nextWeek, day, exIdx); render(); });
+        row.appendChild(clr);
 
-      // clear button for next-week plan
-      const clr = document.createElement('button');
-      clr.type='button';
-      clr.className='adjust-clear';
-      clr.textContent = 'Clear';
-      clr.addEventListener('click', ()=>{
-        DataStore.removeSavedWeight(nextWeek, day, exIdx);
-        render();
-      });
-      btnRow.appendChild(clr);
+        wrap.appendChild(row);
+        placeholder.appendChild(wrap);
+        return;
+      }
 
-      adjWrap.appendChild(btnRow);
-      placeholder.appendChild(adjWrap);
-    });
-  }
+      // For Russian Twists: reps per side adjustments
+      if (ex.hasOwnProperty('startPerSide')) {
+        const wrap = document.createElement('div'); wrap.style.marginTop='10px';
+        wrap.innerHTML = `<div style="font-weight:700;margin-bottom:6px">Change for Next Week (reps per side)</div>`;
+        const planned = DS.getValue(nextWeek, day, exIdx);
+        const plannedText = document.createElement('div'); plannedText.className='muted small'; plannedText.style.marginBottom='6px';
+        plannedText.textContent = 'Planned next-week per-side: ' + (planned !== null ? planned + ' /side' : 'none');
+        wrap.appendChild(plannedText);
 
-  /* ---------- small DataStore helpers for next-week weight keys ---------- */
-  // provide wrappers for savedWeight keyed by week, day, exIdx
-  DataStore.getSavedWeight = function(week, day, exIdx){
-    const v = localStorage.getItem(key('w', week, day, exIdx));
-    return v !== null ? parseFloat(v) : null;
-  };
-  DataStore.saveNextWeight = function(nextWeek, day, exIdx, weight){
-    localStorage.setItem(key('w', nextWeek, day, exIdx), String(weight));
-  };
-  DataStore.removeSavedWeight = function(week, day, exIdx){
-    localStorage.removeItem(key('w', week, day, exIdx));
-  };
+        const deltas = [-10,-5,-3,0,3,5,10];
+        const row = document.createElement('div'); row.style.display='flex'; row.style.gap='8px'; row.style.flexWrap='wrap';
+        deltas.forEach(delta=>{
+          const btn = document.createElement('button'); btn.type='button'; btn.className='adjust-btn';
+          btn.textContent = (delta>0? '+'+delta : String(delta));
+          if (planned !== null && Math.round(planned) === Math.round(displayed + delta)) btn.classList.add('active');
+          btn.addEventListener('click', ()=>{
+            const nextVal = Math.round(displayed + delta);
+            DS.saveValue(nextWeek, day, exIdx, nextVal);
+            render();
+          });
+          row.appendChild(btn);
+        });
+        const clr = document.createElement('button'); clr.type='button'; clr.className='adjust-clear'; clr.textContent='Clear';
+        clr.addEventListener('click', ()=>{ DS.removeValue(nextWeek, day, exIdx); render(); });
+        row.appendChild(clr);
+
+        wrap.appendChild(row);
+        placeholder.appendChild(wrap);
+        return;
+      }
+
+      // For Lying Leg Raises: reps per set adjustments (display as sets)
+      if (ex.hasOwnProperty('startReps')) {
+        const wrap = document.createElement('div'); wrap.style.marginTop='10px';
+        wrap.innerHTML = `<div style="font-weight:700;margin-bottom:6px">Change for Next Week (reps per set)</div>`;
+        const planned = DS.getValue(nextWeek, day, exIdx);
+        const plannedText = document.createElement('div'); plannedText.className='muted small'; plannedText.style.marginBottom='6px';
+        plannedText.textContent = 'Planned next-week reps per set: ' + (planned !== null ? planned + ' reps' : 'none');
+        wrap.appendChild(plannedText);
+
+        const deltas = [-10,-5,-3,0,3,5,10];
+        const row = document.createElement('div'); row.style.display='flex'; row.style.gap='8px'; row.style.flexWrap='wrap';
+        deltas.forEach(delta=>{
+          const btn = document.createElement('button'); btn.type='button'; btn.className='adjust-btn';
+          btn.textContent = (delta>0? '+'+delta : String(delta));
+          if (planned !== null && Math.round(planned) === Math.round(displayed + delta)) btn.classList.add('active');
+          btn.addEventListener('click', ()=>{
+            const nextVal = Math.round(displayed + delta);
+            DS.saveValue(nextWeek, day, exIdx, nextVal);
+            render();
+          });
+          row.appendChild(btn);
+        });
+        const clr = document.createElement('button'); clr.type='button'; clr.className='adjust-clear'; clr.textContent='Clear';
+        clr.addEventListener('click', ()=>{ DS.removeValue(nextWeek, day, exIdx); render(); });
+        row.appendChild(clr);
+
+        wrap.appendChild(row);
+        placeholder.appendChild(wrap);
+        return;
+      }
+
+      // Default: strength/weight adjustments (weights for next week)
+      // Buttons: -5 / -3 / -1 / 0 / +3 / +5 / +10
+      {
+        const wrap = document.createElement('div'); wrap.style.marginTop='10px';
+        wrap.innerHTML = `<div style="font-weight:700;margin-bottom:6px">Weight change for next week</div>`;
+        const planned = DS.getValue(nextWeek, day, exIdx);
+        const plannedText = document.createElement('div'); plannedText.className='muted small'; plannedText.style.marginBottom='6px';
+        plannedText.textContent = 'Planned next-week weight: ' + (planned !== null ? planned + ' lbs' : 'none');
+        wrap.appendChild(plannedText);
+
+        const deltas = [-5,-3,-1,0,3,5,10];
+        const row = document.createElement('div'); row.style.display='flex'; row.style.gap='8px'; row.style.flexWrap='wrap';
+        deltas.forEach(delta=>{
+          const btn = document.createElement('button'); btn.type='button'; btn.className='adjust-btn';
+          btn.textContent = (delta>0? '+'+delta : String(delta));
+          if (planned !== null && Math.round(planned) === Math.round(displayed + delta)) btn.classList.add('active');
+          btn.addEventListener('click', ()=>{
+            const nextVal = Math.round(displayed + delta);
+            DS.saveValue(nextWeek, day, exIdx, nextVal);
+            render();
+          });
+          row.appendChild(btn);
+        });
+        const clr = document.createElement('button'); clr.type='button'; clr.className='adjust-clear'; clr.textContent='Clear';
+        clr.addEventListener('click', ()=>{ DS.removeValue(nextWeek, day, exIdx); render(); });
+        row.appendChild(clr);
+
+        wrap.appendChild(row);
+        placeholder.appendChild(wrap);
+      }
+
+    }); // end exercises loop
+  } // end renderWorkoutDetail
 
   /* ---------- render glue ---------- */
   function render(){
-    const week = DataStore.getWeek();
+    const week = DS.getWeek();
     dom.cycleInfo.textContent = `Week ${week}`;
     renderWeekSelector(week);
     renderDaysGrid();
-    // keep selectedDay visible if previously selected
-    if (window._selectedDay) renderWorkoutDetail(week, window._selectedDay);
-    else dom.detail.classList.add('hidden');
+    // preserve selection if any
+    const sel = window._selectedDay || null;
+    if (sel) renderWorkoutDetail(week, sel);
+    else {
+      dom.detail.classList.add('hidden');
+      dom.detail.innerHTML = '';
+    }
   }
 
-  // render week selector and grid functions
   function renderWeekSelector(currentWeek){
     clear(dom.weekSelector);
     for(let w=1; w<=12; w++){
-      const btn = document.createElement('button');
-      btn.type='button'; btn.className='week-btn'; btn.textContent = 'Week ' + w;
+      const btn = document.createElement('button'); btn.type='button'; btn.className='week-btn'; btn.textContent='Week ' + w;
       if (w === currentWeek) btn.classList.add('active');
       if (w % 4 === 0) btn.classList.add('deload');
-      btn.addEventListener('click', ()=>{ DataStore.setWeek(w); render(); });
+      btn.addEventListener('click', ()=>{ DS.setWeek(w); render(); });
       dom.weekSelector.appendChild(btn);
     }
   }
 
   function renderDaysGrid(){
     clear(dom.grid);
-    const days = Object.keys(PROGRAM).map(k=>parseInt(k,10)).sort((a,b)=>a-b);
+    const days = Object.keys(PROGRAM).map(k => parseInt(k,10)).sort((a,b)=>a-b);
     days.forEach(day => {
       const def = PROGRAM[day];
       const card = document.createElement('div');
       card.className = 'card day-card';
       card.tabIndex = 0;
-      card.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center">
-        <strong>Day ${day}</strong><span class="muted small">${def.name}</span>
-      </div><div class="small muted" style="margin-top:8px">${def.exercises.length} exercises</div>`;
+      card.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center"><strong>Day ${day}</strong><span class="muted small">${def.name}</span></div><div class="small muted" style="margin-top:8px">${def.exercises.length} exercises</div>`;
       card.addEventListener('click', ()=> selectDay(day));
       card.addEventListener('keydown', ev=>{ if(ev.key==='Enter' || ev.key===' '){ ev.preventDefault(); selectDay(day); } });
       dom.grid.appendChild(card);
     });
   }
 
-  // select day helper (keeps state globally for re-render)
   function selectDay(day){
     window._selectedDay = day;
-    const week = DataStore.getWeek();
+    const week = DS.getWeek();
     renderWorkoutDetail(week, day);
-    // visually mark selected
+    // highlight card
     document.querySelectorAll('.day-card').forEach(el=>{
       if (el.textContent.includes('Day '+day)) el.classList.add('selected'); else el.classList.remove('selected');
     });
   }
 
-  // export/reset
+  /* ---------- export/reset handlers ---------- */
   dom.exportBtn.addEventListener('click', ()=>{
-    const csv = DataStore.exportCSV();
-    const blob = new Blob([csv], {type:'text/csv'});
-    const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
-    a.download = 'workout-export.csv'; document.body.appendChild(a); a.click(); a.remove();
-    URL.revokeObjectURL(a.href);
+    try {
+      const csv = DS.exportCSV();
+      const blob = new Blob([csv], {type:'text/csv'});
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'workout-export.csv'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(a.href);
+    } catch(e){ alert('Export failed: '+e.message); }
   });
 
   dom.resetBtn.addEventListener('click', ()=>{
     if (!confirm('Reset all saved program data? This cannot be undone.')) return;
-    DataStore.resetAll();
+    DS.resetAll();
     window._selectedDay = null;
     render();
   });
 
-  // initial week default
-  if (!localStorage.getItem(key('week'))) DataStore.setWeek(1);
+  // initialize default week if not present
+  if (!localStorage.getItem(key('week'))) DS.setWeek(1);
 
   // initial render
   render();
 
-  // expose for debugging
-  window._workoutApp = { DataStore, PROGRAM, render };
+  // expose some debugging hooks
+  window._workoutApp = { DS, PROGRAM, render };
 
 })();
 </script>
