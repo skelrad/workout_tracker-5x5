@@ -133,14 +133,14 @@ footer{margin-top:18px;text-align:center;color:var(--muted);font-size:0.9rem}
     5: { name: "Full Body & Cardio", exercises: [
       { name:"Dumbbell Clean & Press", sets:4, startWeight:25, notes:"Explosive" },
       { name:"Goblet Squats", sets:4, startWeight:40, notes:"Similar to Day 2" },
-      { name:"Push-ups", sets:5, startReps:15, notes:"" },              // reps-based (per your request)
+      { name:"Push-ups", sets:5, startReps:15, notes:"" },
       { name:"Dumbbell Swings", sets:3, startWeight:30, notes:"Hip drive" },
       { name:"Treadmill Intervals", sets:1, startWeight:0, notes:"Interval session — no adjustments" }
     ]}
   };
 
   /* ---------- Storage helpers ---------- */
-  const PREFIX = 'prog_manual_v2_';
+  const PREFIX = 'prog_manual_v3_';
   function key(...parts){ return PREFIX + parts.join('|'); }
 
   const DS = {
@@ -151,7 +151,7 @@ footer{margin-top:18px;text-align:center;color:var(--muted);font-size:0.9rem}
     getProgress(week, day, exIdx, setNum){ return localStorage.getItem(key('p', week, day, exIdx, 's'+setNum)) || null; },
     removeProgress(week, day, exIdx, setNum){ localStorage.removeItem(key('p', week, day, exIdx, 's'+setNum)); },
 
-    // generic value store (weight/time/reps) for specific week/day/exercise
+    // generic value store (weight/time/reps) for specific week/day/ex
     saveValue(week, day, exIdx, val){ localStorage.setItem(key('v', week, day, exIdx), String(val)); },
     getValue(week, day, exIdx){ const v = localStorage.getItem(key('v', week, day, exIdx)); return v !== null ? Number(v) : null; },
     removeValue(week, day, exIdx){ localStorage.removeItem(key('v', week, day, exIdx)); },
@@ -198,7 +198,7 @@ footer{margin-top:18px;text-align:center;color:var(--muted);font-size:0.9rem}
     return 0;
   }
 
-  /* ---------- Rendering ---------- */
+  /* ---------- Rendering helpers ---------- */
   function renderWeekSelector(currentWeek){
     clear(dom.weekSelector);
     for(let w=1; w<=12; w++){
@@ -231,6 +231,7 @@ footer{margin-top:18px;text-align:center;color:var(--muted);font-size:0.9rem}
     });
   }
 
+  /* ---------- Main render for workout detail ---------- */
   function renderWorkoutDetail(week, day){
     if (!day){
       dom.detail.classList.add('hidden');
@@ -248,7 +249,7 @@ footer{margin-top:18px;text-align:center;color:var(--muted);font-size:0.9rem}
     </div>`;
     dom.detail.appendChild(heading);
 
-    // use for loop so we can continue
+    // iterate exercises
     for (let idx = 0; idx < def.exercises.length; idx++){
       const ex = def.exercises[idx];
       const exIdx = idx + 1;
@@ -280,10 +281,9 @@ footer{margin-top:18px;text-align:center;color:var(--muted);font-size:0.9rem}
       <div style="margin-top:10px" id="ex_${day}_${exIdx}"></div>`;
 
       dom.detail.appendChild(exCard);
-
       const placeholder = exCard.querySelector(`#ex_${day}_${exIdx}`);
 
-      // set buttons row (pass/fail/dbl click clear)
+      // set buttons (pass/fail/dbl click clear)
       const setRow = document.createElement('div'); setRow.className = 'set-buttons';
       for (let s = 1; s <= ex.sets; s++){
         const btn = document.createElement('button'); btn.type='button'; btn.className='set-btn';
@@ -295,7 +295,7 @@ footer{margin-top:18px;text-align:center;color:var(--muted);font-size:0.9rem}
         if (state === 'complete') btn.classList.add('pass');
         else if (state === 'failed') btn.classList.add('fail');
 
-        btn.addEventListener('click', function(ev){
+        btn.addEventListener('click', (ev)=>{
           const rect = btn.getBoundingClientRect();
           const clickX = ev.clientX - rect.left;
           const half = rect.width / 2;
@@ -320,15 +320,15 @@ footer{margin-top:18px;text-align:center;color:var(--muted);font-size:0.9rem}
       // next-week controls
       const nextWeek = (week % 12) + 1;
 
-      // treadmill: no adjustments
+      // Treadmill: informational only
       if (ex.name.toLowerCase().includes('treadmill')) {
         const note = document.createElement('div'); note.className='muted small'; note.style.marginTop='8px';
         note.textContent = 'No next-week adjustments for treadmill intervals.';
         placeholder.appendChild(note);
-        continue; // next exercise
+        continue;
       }
 
-      // Plank (time, seconds)
+      // Plank (time)
       if (ex.hasOwnProperty('startTime')) {
         const wrap = document.createElement('div'); wrap.style.marginTop='10px';
         wrap.innerHTML = `<div style="font-weight:700;margin-bottom:6px">Change for Next Week (seconds)</div>`;
@@ -390,7 +390,7 @@ footer{margin-top:18px;text-align:center;color:var(--muted);font-size:0.9rem}
         continue;
       }
 
-      // Lying Leg Raises (reps per set)
+      // Lying Leg Raises and Push-ups (reps per set)
       if (ex.hasOwnProperty('startReps')) {
         const wrap = document.createElement('div'); wrap.style.marginTop='10px';
         wrap.innerHTML = `<div style="font-weight:700;margin-bottom:6px">Change for Next Week (reps per set)</div>`;
@@ -421,15 +421,7 @@ footer{margin-top:18px;text-align:center;color:var(--muted);font-size:0.9rem}
         continue;
       }
 
-      // Push-ups (Day 5) - reps per set (startReps present)
-      if (ex.hasOwnProperty('startReps')) {
-        // handled above (startReps case) - but for safety it's covered already
-        // the previous block already processed startReps for lying leg raises and push-ups
-        // so this will not be reached. continue to next exercise.
-        continue;
-      }
-
-      // Default: strength weight adjustments
+      // Default: weight adjustments (weights everywhere else, including dumbbell side bends)
       {
         const wrap = document.createElement('div'); wrap.style.marginTop='10px';
         wrap.innerHTML = `<div style="font-weight:700;margin-bottom:6px">Weight change for next week</div>`;
@@ -438,14 +430,17 @@ footer{margin-top:18px;text-align:center;color:var(--muted);font-size:0.9rem}
         plannedText.textContent = 'Planned next-week weight: ' + (planned !== null ? planned + ' lbs' : 'none');
         wrap.appendChild(plannedText);
 
-        const deltas = [-5,-3,-1,0,3,5,10];
+        // NEW final weight buttons:
+        const deltas = [-10,-5,-3.5,-1.5,0,1.5,3.5,5,10];
         const row = document.createElement('div'); row.style.display='flex'; row.style.gap='8px'; row.style.flexWrap='wrap';
         deltas.forEach(delta=>{
           const btn = document.createElement('button'); btn.type='button'; btn.className='adjust-btn';
           btn.textContent = (delta>0? '+'+delta : String(delta));
-          if (planned !== null && Math.round(planned) === Math.round(displayed + delta)) btn.classList.add('active');
+          // active if planned equals displayed + delta (exact equality using rounding to 3 decimals)
+          const plannedMatches = (planned !== null) && Math.abs(planned - (displayed + delta)) < 0.0005;
+          if (plannedMatches) btn.classList.add('active');
           btn.addEventListener('click', ()=>{
-            const nextVal = Math.round(displayed + delta);
+            const nextVal = displayed + delta; // exact value, allow decimals
             DS.saveValue(nextWeek, day, exIdx, nextVal);
             render();
           });
@@ -459,7 +454,7 @@ footer{margin-top:18px;text-align:center;color:var(--muted);font-size:0.9rem}
         placeholder.appendChild(wrap);
       }
 
-    } // end for exercises
+    } // end exercises loop
   } // end renderWorkoutDetail
 
   /* ---------- render glue ---------- */
