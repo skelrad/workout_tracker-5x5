@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Progressive 5x5 Dumbbell Program</title>
   <style>
-    /* ---------- Basic layout / lightweight CSS (kept readable) ---------- */
     :root{--accent:#3b82f6;--muted:#6b7280;--success:#10b981;--warning:#f59e0b;--danger:#ef4444}
     *{box-sizing:border-box}
     body{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:#f5f5f5;margin:0;padding:20px;color:#111}
@@ -60,11 +59,8 @@
     </div>
 
     <div id="weekAlert" class="alert hidden" role="status"></div>
-
     <div id="workoutGrid" class="grid"></div>
-
     <div id="workoutDetail" class="card hidden" aria-live="polite"></div>
-
     <footer class="muted">Built for local usage — data stored in your browser (localStorage).</footer>
   </div>
 
@@ -72,7 +68,6 @@
   (function appModule(){
     'use strict';
 
-    /* ---------- Data (program definition) ---------- */
     const PROGRAM = {
       1: { name: "Upper Body Push", exercises: [
         { name:"Incline Dumbbell Press", sets:5, reps:5, startWeight:25, notes:"Focus on upper chest" },
@@ -111,134 +106,71 @@
       ]}
     };
 
-    /* ---------- Helper / DataStore module ---------- */
+    /* ---------- DataStore ---------- */
     const DataStore = (function(){
-      const prefix = 'prog_v1_'; // version prefix so future breaking changes can be handled
-      function key(...parts){ return prefix + parts.join('|'); }
-
-      function getJSON(k, fallback=null){
-        try {
-          const raw = localStorage.getItem(k);
-          return raw ? JSON.parse(raw) : fallback;
-        } catch(e) {
-          console.error('getJSON error', e);
-          return fallback;
-        }
-      }
-      function setJSON(k, v){
-        try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){ console.error('setJSON', e); }
-      }
-
-      // primitive keying for per-exercise sets & weights
-      function progressKey(cycle, week, day, exIdx, set){
-        return key('p', cycle, week, day, exIdx, 's' + set);
-      }
-      function weightKey(cycle, week, day, exIdx){
-        return key('w', cycle, week, day, exIdx);
-      }
-      function adjKey(cycle, week, day, exIdx){
-        return key('a', cycle, week, day, exIdx);
-      }
-
+      const prefix='prog_v1_';
+      const safeGet = (k,fallback)=>{ try { const r=localStorage.getItem(k); return r?JSON.parse(r):fallback; } catch(e){return fallback;} };
+      const safeSet = (k,v)=>{ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} };
+      const key=(...parts)=>prefix+parts.join('|');
       return {
-        getCycle(){ return parseInt(localStorage.getItem(key('currentCycle')) || '1', 10); },
-        setCycle(v){ localStorage.setItem(key('currentCycle'), String(v)); },
-        getWeek(){ return parseInt(localStorage.getItem(key('currentWeek')) || '1', 10); },
-        setWeek(v){ localStorage.setItem(key('currentWeek'), String(v)); },
-        // progress (complete/failed/null)
-        saveProgress(cycle, week, day, exIdx, setNum, value){ localStorage.setItem(progressKey(cycle,week,day,exIdx,setNum), value); },
-        getProgress(cycle, week, day, exIdx, setNum){ return localStorage.getItem(progressKey(cycle,week,day,exIdx,setNum)) || null; },
-        // weights / manual adjustments
-        saveWeight(cycle, week, day, exIdx, weight){ localStorage.setItem(weightKey(cycle,week,day,exIdx), String(weight)); },
-        getSavedWeight(cycle, week, day, exIdx){ const v = localStorage.getItem(weightKey(cycle,week,day,exIdx)); return v !== null ? parseFloat(v) : null; },
-        saveAdjustment(cycle, week, day, exIdx, adj){ localStorage.setItem(adjKey(cycle,week,day,exIdx), String(adj)); },
-        getAdjustment(cycle, week, day, exIdx){ const v = localStorage.getItem(adjKey(cycle,week,day,exIdx)); return v!==null?parseFloat(v):null; },
-        // export / reset
-        exportCSV(){ // simple CSV with keys and values
-          const rows = [['key','value']];
-          for (let i=0;i<localStorage.length;i++){
-            const k = localStorage.key(i);
-            if (k && k.startsWith(prefix)){
-              rows.push([k, localStorage.getItem(k)]);
-            }
-          }
-          return rows.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
-        },
-        resetAll(){ // remove keys with our prefix only
-          const toRemove = [];
-          for (let i=0;i<localStorage.length;i++){
-            const k = localStorage.key(i);
-            if (k && k.startsWith(prefix)) toRemove.push(k);
-          }
-          toRemove.forEach(k=>localStorage.removeItem(k));
-        }
+        getCycle(){ try{return parseInt(localStorage.getItem(key('currentCycle'))||'1',10);}catch{return 1;} },
+        setCycle(v){ try{localStorage.setItem(key('currentCycle'),v);}catch{} },
+        getWeek(){ try{return parseInt(localStorage.getItem(key('currentWeek'))||'1',10);}catch{return 1;} },
+        setWeek(v){ try{localStorage.setItem(key('currentWeek'),v);}catch{} },
+        saveProgress(cycle, week, day, exIdx, setNum, value){ localStorage.setItem(key('p',cycle,week,day,exIdx,'s'+setNum),value); },
+        getProgress(cycle, week, day, exIdx, setNum){ return localStorage.getItem(key('p',cycle,week,day,exIdx,'s'+setNum))||null; },
+        saveWeight(cycle, week, day, exIdx, weight){ localStorage.setItem(key('w',cycle,week,day,exIdx),weight); },
+        getSavedWeight(cycle, week, day, exIdx){ const v=localStorage.getItem(key('w',cycle,week,day,exIdx)); return v!==null?parseFloat(v):null; },
+        saveAdjustment(cycle, week, day, exIdx, adj){ localStorage.setItem(key('a',cycle,week,day,exIdx),adj); },
+        getAdjustment(cycle, week, day, exIdx){ const v=localStorage.getItem(key('a',cycle,week,day,exIdx)); return v!==null?parseFloat(v):null; },
+        exportCSV(){ const rows=[['key','value']]; for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(k&&k.startsWith(prefix)) rows.push([k,localStorage.getItem(k)]); } return rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n'); },
+        resetAll(){ const toRemove=[]; for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(k&&k.startsWith(prefix)) toRemove.push(k); } toRemove.forEach(k=>localStorage.removeItem(k)); }
       };
     })();
 
-    /* ---------- Logic helpers ---------- */
-    function getWeekType(week){ return (week % 4 === 0) ? 'deload' : 'normal'; }
+    function getWeekType(w){ return (w%4===0)?'deload':'normal'; }
 
     function getExercisePerformance(cycle, week, day, exIdx, totalSets){
-      let completed = 0, failed = 0;
+      let completed=0, failed=0;
       for(let s=1;s<=totalSets;s++){
-        const p = DataStore.getProgress(cycle,week,day,exIdx,s);
-        if (p === 'complete') completed++;
-        else if (p === 'failed') failed++;
+        const p=DataStore.getProgress(cycle,week,day,exIdx,s);
+        if(p==='complete') completed++;
+        else if(p==='failed') failed++;
       }
-      return {completed, failed, total: totalSets};
+      return {completed, failed, total:totalSets};
     }
 
     function didCompleteLastWeek(cycle, week, day, exIdx, totalSets){
-      // look at previous week (with cycle rollover)
-      let prevCycle = cycle, prevWeek = week - 1;
-      if (prevWeek < 1){ prevCycle = cycle - 1; prevWeek = 12; }
-      if (prevCycle < 1) return true; // assume fully complete for first cycle baseline
-      const perf = getExercisePerformance(prevCycle, prevWeek, day, exIdx, totalSets);
-      return perf.completed === totalSets;
+      let prevCycle=cycle, prevWeek=week-1;
+      if(prevWeek<1){ prevCycle=cycle-1; prevWeek=12; }
+      if(prevCycle<1) return true;
+      const perf=getExercisePerformance(prevCycle,prevWeek,day,exIdx,totalSets);
+      return perf.completed===totalSets;
     }
 
     function computeWeight(startWeight, cycle, week, day, exIdx, totalSets){
-      if (!startWeight) return 0;
-      try {
-        const weekType = getWeekType(week);
-        const saved = DataStore.getSavedWeight(cycle, week, day, exIdx);
-        if (saved !== null){
-          return (weekType==='deload') ? Math.round(saved * 0.7) : saved;
-        }
-        // first ever week of first cycle
-        if (cycle===1 && week===1){
-          DataStore.saveWeight(cycle,week,day,exIdx,startWeight);
-          return startWeight;
-        }
-        // determine prev week
-        let prevCycle = cycle, prevWeek = week - 1;
-        if (prevWeek < 1){ prevCycle = cycle - 1; prevWeek = 12; }
-        if (prevCycle < 1){
-          DataStore.saveWeight(cycle,week,day,exIdx,startWeight);
-          return startWeight;
-        }
-        // recursively compute previous weight
-        const prevWeight = computeWeight(startWeight, prevCycle, prevWeek, day, exIdx, totalSets);
-        // check adjustment on prev week
-        const manualAdj = DataStore.getAdjustment(prevCycle, prevWeek, day, exIdx);
-        let newWeight = prevWeight;
-        if (manualAdj !== null){ newWeight = prevWeight + manualAdj; }
-        else {
-          const prevWeekType = getWeekType(prevWeek);
-          const completedLast = didCompleteLastWeek(cycle, week, day, exIdx, totalSets);
-          if (completedLast && prevWeekType !== 'deload') newWeight = prevWeight + 5;
-        }
-        DataStore.saveWeight(cycle, week, day, exIdx, newWeight);
-        return (weekType === 'deload') ? Math.round(newWeight * 0.7) : newWeight;
-      } catch (err){
-        console.error('computeWeight error', err);
-        return startWeight;
-      }
+      if(!startWeight) return 0;
+      try{
+        const weekType=getWeekType(week);
+        const saved=DataStore.getSavedWeight(cycle,week,day,exIdx);
+        if(saved!==null) return (weekType==='deload')?Math.round(saved*0.7):saved;
+        if(cycle===1 && week===1){ DataStore.saveWeight(cycle,week,day,exIdx,startWeight); return startWeight; }
+        let prevCycle=cycle, prevWeek=week-1;
+        if(prevWeek<1){ prevCycle=cycle-1; prevWeek=12; }
+        if(prevCycle<1){ DataStore.saveWeight(cycle,week,day,exIdx,startWeight); return startWeight; }
+        const prevWeight=computeWeight(startWeight,prevCycle,prevWeek,day,exIdx,totalSets);
+        const manualAdj=DataStore.getAdjustment(prevCycle,prevWeek,day,exIdx);
+        let newWeight=prevWeight;
+        if(manualAdj!==null) newWeight=prevWeight+manualAdj;
+        else { const prevWeekType=getWeekType(prevWeek); const completedLast=didCompleteLastWeek(cycle,week,day,exIdx,totalSets); if(completedLast && prevWeekType!=='deload') newWeight+=5; }
+        DataStore.saveWeight(cycle,week,day,exIdx,newWeight);
+        return (weekType==='deload')?Math.round(newWeight*0.7):newWeight;
+      }catch{return startWeight;}
     }
 
-    /* ---------- UI Module ---------- */
-    const UI = (function(){
-      const dom = {
+    /* ---------- UI ---------- */
+    const UI=(function(){
+      const dom={
         cycleInfo: document.getElementById('cycleInfo'),
         weekSelector: document.getElementById('weekSelector'),
         weekAlert: document.getElementById('weekAlert'),
@@ -248,259 +180,86 @@
         resetBtn: document.getElementById('resetBtn')
       };
 
-      function renderCycleInfo(cycle, week){
-        dom.cycleInfo.textContent = `Cycle ${cycle} — Week ${week} of 12 (${getWeekType(week)})`;
-      }
-
       function clearChildren(el){ while(el.firstChild) el.removeChild(el.firstChild); }
-
+      function renderCycleInfo(cycle, week){ dom.cycleInfo.textContent=`Cycle ${cycle} — Week ${week} of 12 (${getWeekType(week)})`; }
       function renderWeekSelector(currentWeek){
         clearChildren(dom.weekSelector);
-        for(let w=1; w<=12; w++){
-          const btn = document.createElement('button');
-          btn.type = 'button';
-          btn.className = 'week-btn';
-          btn.textContent = 'Week ' + w;
-          if (getWeekType(w) === 'deload') btn.classList.add('deload');
-          if (w === currentWeek) btn.classList.add('active');
-          btn.dataset.week = String(w);
-          btn.addEventListener('click', onWeekClick);
+        for(let w=1;w<=12;w++){
+          const btn=document.createElement('button');
+          btn.type='button'; btn.className='week-btn'; btn.textContent='Week '+w;
+          if(getWeekType(w)==='deload') btn.classList.add('deload');
+          if(w===currentWeek) btn.classList.add('active');
+          btn.dataset.week=w;
+          btn.addEventListener('click', e=>{ const week=parseInt(e.currentTarget.dataset.week,10); currentWeek=week; DataStore.setWeek(week); selectedDay=null; render(); });
           dom.weekSelector.appendChild(btn);
         }
       }
 
       function renderDaysGrid(cycle, week){
         clearChildren(dom.grid);
-        // program keys are days (1..n). We'll render those present in PROGRAM.
-        const days = Object.keys(PROGRAM).map(k=>parseInt(k,10)).sort((a,b)=>a-b);
-        days.forEach(day => {
-          const def = PROGRAM[day];
-          const card = document.createElement('div');
-          card.className = 'card day-card';
-          card.tabIndex = 0;
-          card.dataset.day = String(day);
-          card.innerHTML = `
-            <div style="display:flex;justify-content:space-between;align-items:center">
-              <strong>Day ${day}</strong>
-              <span class="muted small">${def.name}</span>
-            </div>
-            <div class="small muted" style="margin-top:8px">
-              ${def.exercises.length} exercises
-            </div>
-          `;
-          // attach click to show detail (use keyboard accessible)
-          card.addEventListener('click', ()=>selectDay(day));
-          card.addEventListener('keydown', (ev)=>{ if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); selectDay(day); } });
+        const days=Object.keys(PROGRAM).map(k=>parseInt(k,10)).sort((a,b)=>a-b);
+        days.forEach(day=>{
+          const def=PROGRAM[day];
+          const card=document.createElement('div'); card.className='card day-card'; card.tabIndex=0; card.dataset.day=day;
+          card.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center"><strong>Day ${day}</strong><span class="muted small">${def.name}</span></div><div class="small muted" style="margin-top:8px">${def.exercises.length} exercises</div>`;
+          card.addEventListener('click',()=>selectDay(day));
+          card.addEventListener('keydown',ev=>{ if(ev.key==='Enter'||ev.key===' '){ ev.preventDefault(); selectDay(day); } });
           dom.grid.appendChild(card);
         });
       }
 
       function renderWorkoutDetail(cycle, week, day){
-        // if no day selected, hide
-        if (!day){ dom.detail.classList.add('hidden'); dom.detail.innerHTML = ''; return; }
-        dom.detail.classList.remove('hidden');
-        clearChildren(dom.detail);
-
-        const def = PROGRAM[day];
-        const heading = document.createElement('div');
-        heading.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center">
-          <div><strong>Day ${day} — ${def.name}</strong><div class="muted small">${def.exercises.length} exercises</div></div>
-          <div class="muted small">Week ${week} (${getWeekType(week)})</div>
-        </div>`;
+        if(!day){ dom.detail.classList.add('hidden'); dom.detail.innerHTML=''; return; }
+        dom.detail.classList.remove('hidden'); clearChildren(dom.detail);
+        const def=PROGRAM[day];
+        const heading=document.createElement('div');
+        heading.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center"><div><strong>Day ${day} — ${def.name}</strong><div class="muted small">${def.exercises.length} exercises</div></div><div class="muted small">Week ${week} (${getWeekType(week)})</div></div>`;
         dom.detail.appendChild(heading);
 
-        // exercises
-        def.exercises.forEach((ex, idx) => {
-          const exIdx = idx + 1;
-          const exCard = document.createElement('div');
-          exCard.className = 'exercise-card';
-          const weight = computeWeight(ex.startWeight, cycle, week, day, exIdx, ex.sets);
-          const perf = getExercisePerformance(cycle, week, day, exIdx, ex.sets);
-          exCard.innerHTML = `
-            <div style="display:flex;justify-content:space-between;align-items:flex-start">
-              <div>
-                <div style="font-weight:700">${ex.name}</div>
-                <div class="muted small">${ex.notes || ''}</div>
-              </div>
-              <div style="text-align:right">
-                <div style="font-weight:700">${weight} lbs</div>
-                <div class="muted small">Sets ${perf.completed}/${perf.total}</div>
-              </div>
-            </div>
-            <div style="margin-top:10px" id="ex_${day}_${exIdx}"></div>
-          `;
+        def.exercises.forEach((ex,idx)=>{
+          const exIdx=idx+1;
+          const exCard=document.createElement('div'); exCard.className='exercise-card';
+          const weight=computeWeight(ex.startWeight,cycle,week,day,exIdx,ex.sets);
+          const perf=getExercisePerformance(cycle,week,day,exIdx,ex.sets);
+          exCard.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:flex-start"><div><div style="font-weight:700">${ex.name}</div><div class="muted small">${ex.notes||''}</div></div><div style="text-align:right"><div style="font-weight:700">${weight} lbs</div><div class="muted small">Sets ${perf.completed}/${perf.total}</div></div></div><div style="margin-top:10px" id="ex_${day}_${exIdx}"></div>`;
           dom.detail.appendChild(exCard);
-
-          // set buttons (render into placeholder)
-          const placeholder = exCard.querySelector(`#ex_${day}_${exIdx}`);
-          const setRow = document.createElement('div');
-          setRow.className = 'set-buttons';
-          for (let s = 1; s <= ex.sets; s++){
-            const b = document.createElement('button');
-            b.type = 'button';
-            b.className = 'set-btn';
-            b.textContent = `Set ${s}`;
-            const state = DataStore.getProgress(cycle, week, day, exIdx, s);
-            if (state === 'complete') b.classList.add('complete');
-            else if (state === 'failed') b.classList.add('failed');
-
-            b.addEventListener('click', function(){
-              // cycle: null -> complete -> failed -> null
-              const cur = DataStore.getProgress(cycle, week, day, exIdx, s);
-              const next = cur === null ? 'complete' : (cur === 'complete' ? 'failed' : null);
-              if (next === null) localStorage.removeItem('prog_v1_' + ['p', cycle, week, day, exIdx, 's' + s].join('|'));
-              else DataStore.saveProgress(cycle, week, day, exIdx, s, next);
-              renderWorkoutDetail(cycle, week, day); // re-render detail for updated state
-              renderDaysGrid(cycle, week); // update counts on grid
-            });
-
+          const placeholder=exCard.querySelector(`#ex_${day}_${exIdx}`);
+          const setRow=document.createElement('div'); setRow.className='set-buttons';
+          for(let s=1;s<=ex.sets;s++){
+            const b=document.createElement('button'); b.type='button'; b.className='set-btn'; b.textContent=`Set ${s}`;
+            const state=DataStore.getProgress(cycle,week,day,exIdx,s);
+            if(state==='complete') b.classList.add('complete');
+            else if(state==='failed') b.classList.add('failed');
+            b.addEventListener('click',()=>{ const cur=DataStore.getProgress(cycle,week,day,exIdx,s); const next=cur===null?'complete':(cur==='complete'?'failed':null); if(next===null) localStorage.removeItem('prog_v1_' + ['p',cycle,week,day,exIdx,'s'+s].join('|')); else DataStore.saveProgress(cycle,week,day,exIdx,s,next); renderWorkoutDetail(cycle,week,day); renderDaysGrid(cycle,week); });
             setRow.appendChild(b);
           }
           placeholder.appendChild(setRow);
         });
-
-        // weight adjustment controls
-        const adjustArea = document.createElement('div');
-        adjustArea.style.marginTop = '12px';
-        adjustArea.innerHTML = `<div style="font-weight:700;margin-bottom:8px">Manual adjustments</div>`;
-        PROGRAM[day].exercises.forEach((ex, idx) => {
-          const exIdx = idx + 1;
-          const curAdj = DataStore.getAdjustment(cycle, week, day, exIdx);
-          const wrap = document.createElement('div');
-          wrap.style.marginBottom = '8px';
-          wrap.innerHTML = `<div class="muted small">${ex.name} — current manual adj: ${curAdj === null ? 'none' : curAdj + ' lbs'}</div>`;
-          // buttons
-          const btns = document.createElement('div');
-          btns.style.marginTop = '6px';
-          ['+3','+5','+10','0','-5'].forEach(val => {
-            const b = document.createElement('button');
-            b.type = 'button';
-            b.className = 'week-btn';
-            b.style.padding='6px 8px';
-            b.textContent = val;
-            b.addEventListener('click', ()=>{
-              const parsed = val === '0' ? 0 : parseInt(val,10);
-              DataStore.saveAdjustment(cycle, week, day, exIdx, parsed);
-              renderWorkoutDetail(cycle, week, day);
-            });
-            btns.appendChild(b);
-          });
-          // clear button
-          const clr = document.createElement('button');
-          clr.type='button'; clr.className='week-btn'; clr.style.marginLeft='8px'; clr.textContent='Clear';
-          clr.addEventListener('click', ()=>{
-            localStorage.removeItem('prog_v1_' + ['a', cycle, week, day, exIdx].join('|'));
-            renderWorkoutDetail(cycle, week, day);
-          });
-          btns.appendChild(clr);
-          wrap.appendChild(btns);
-          adjustArea.appendChild(wrap);
-        });
-        dom.detail.appendChild(adjustArea);
       }
 
-      function setAlert(text, show=true, type='info'){
-        if (!text || !show){ dom.weekAlert.classList.add('hidden'); dom.weekAlert.textContent=''; return; }
-        dom.weekAlert.classList.remove('hidden');
-        dom.weekAlert.textContent = text;
-      }
+      function setAlert(text,show=true){ if(!text||!show){ dom.weekAlert.classList.add('hidden'); dom.weekAlert.textContent=''; return; } dom.weekAlert.classList.remove('hidden'); dom.weekAlert.textContent=text; }
+      function selectDay(day){ selectedDay=day; document.querySelectorAll('.day-card').forEach(el=>el.dataset.day==day?el.classList.add('selected'):el.classList.remove('selected')); renderWorkoutDetail(currentCycle,currentWeek,day); }
 
-      // event handlers will be assigned externally by controller
-      function onWeekClick(e){ /* placeholder - overwritten below */ }
-
-      // wire export/reset
-      dom.exportBtn.addEventListener('click', ()=> {
-        try {
-          const csv = DataStore.exportCSV();
-          const blob = new Blob([csv], {type: 'text/csv'});
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url; a.download = 'workout-export.csv';
-          document.body.appendChild(a); a.click(); a.remove();
-          URL.revokeObjectURL(url);
-        } catch (err){ console.error('export', err); alert('Export failed: ' + err.message); }
+      // export/reset
+      dom.exportBtn.addEventListener('click',()=>{
+        const csv=DataStore.exportCSV(); const blob=new Blob([csv],{type:'text/csv'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='workout-export.csv'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
       });
+      dom.resetBtn.addEventListener('click',()=>{ if(!confirm('Reset all saved program data?')) return; DataStore.resetAll(); location.reload(); });
 
-      dom.resetBtn.addEventListener('click', ()=>{
-        if (!confirm('Reset all saved program data? This cannot be undone.')) return;
-        DataStore.resetAll();
-        location.reload();
-      });
-
-      // expose functions
-      return {
-        renderCycleInfo,
-        renderWeekSelector,
-        renderDaysGrid,
-        renderWorkoutDetail,
-        setAlert,
-        attachWeekHandler(fn){
-          // set the local onWeekClick so created buttons call this
-          onWeekClick = fn;
-        },
-        selectDayEl(day){
-          // visually mark selected day card(s)
-          document.querySelectorAll('.day-card').forEach(el=>{
-            if (el.dataset.day === String(day)) el.classList.add('selected'); else el.classList.remove('selected');
-          });
-        }
-      };
+      return { renderCycleInfo, renderWeekSelector, renderDaysGrid, renderWorkoutDetail, setAlert, selectDay };
     })();
 
-    /* ---------- Controller / App flow ---------- */
-    (function controller(){
-      // initialize state
-      let currentCycle = DataStore.getCycle();
-      let currentWeek = DataStore.getWeek();
-      let selectedDay = null;
+    /* ---------- App ---------- */
+    let currentCycle=DataStore.getCycle();
+    let currentWeek=DataStore.getWeek();
+    let selectedDay=null;
 
-      // attach week handler
-      UI.attachWeekHandler(function(e){
-        const week = parseInt(e.currentTarget.dataset.week, 10);
-        if (!isFinite(week)) return;
-        currentWeek = week;
-        DataStore.setWeek(week);
-        selectedDay = null;
-        render();
-      });
+    function render(){ try{ UI.renderCycleInfo(currentCycle,currentWeek); UI.renderWeekSelector(currentWeek); UI.renderDaysGrid(currentCycle,currentWeek); UI.renderWorkoutDetail(currentCycle,currentWeek,selectedDay); UI.setAlert('',false); }catch(err){ console.error(err); UI.setAlert('Render error'); } }
 
-      // select day (exposed to UI)
-      window.selectDay = function(day){
-        selectedDay = day;
-        UI.selectDayEl(day);
-        UI.renderWorkoutDetail(currentCycle, currentWeek, day);
-      };
+    window.selectDay=UI.selectDay;
 
-      function render(){
-        try{
-          UI.renderCycleInfo(currentCycle, currentWeek);
-          UI.renderWeekSelector(currentWeek);
-          UI.renderDaysGrid(currentCycle, currentWeek);
-          UI.renderWorkoutDetail(currentCycle, currentWeek, selectedDay);
-          UI.setAlert('', false);
-        } catch(err){
-          console.error('render error', err);
-          UI.setAlert('Rendering error — check console for details', true);
-        }
-      }
-
-      // expose selectDay wrapper to module area
-      window.selectDay = function(day){
-        selectedDay = day;
-        UI.selectDayEl(day);
-        UI.renderWorkoutDetail(currentCycle, currentWeek, day);
-      };
-
-      // initial render
-      render();
-
-      // expose a safe API for debugging in console if needed
-      window._workoutApp = {
-        DataStore, UI, PROGRAM,
-        get state(){ return {cycle: currentCycle, week: currentWeek, selectedDay}; },
-        computeWeight, render
-      };
-    })();
+    render();
+    window._workoutApp={DataStore,UI,PROGRAM,get state(){return{cycle:currentCycle,week:currentWeek,selectedDay}},render};
 
   })();
   </script>
