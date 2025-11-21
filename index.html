@@ -1,370 +1,539 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Workout Tracker — 5x5 (updated)</title>
-  <style>
-    :root {
-      --bg: #f6f7fb;
-      --card: #fff;
-      --muted: #666;
-      --accent: #1f6feb;
-      --danger: #c0392b;
-    }
-    body { font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; margin:0; padding:24px; background:var(--bg); color:#111;}
-    .container { max-width:1100px; margin:0 auto; }
-    header { display:flex; align-items:center; gap:16px; margin-bottom:18px;}
-    h1 { margin:0; font-size:20px; }
-    .card { background:var(--card); border-radius:10px; padding:12px; box-shadow: 0 6px 18px rgba(12,20,40,0.06); margin-bottom:12px;}
-    .exercises { display:flex; flex-direction:column; gap:12px; }
-    .exercise-row { display:flex; gap:12px; align-items:flex-start; padding:10px; border-radius:8px; border:1px solid rgba(0,0,0,0.04); }
-    .exercise-info { flex:1; min-width:220px; }
-    .exercise-controls { display:flex; gap:12px; align-items:center; }
-    .sets { display:flex; gap:8px; flex-wrap:wrap; }
-    .set { width:110px; background:#fbfcff; border-radius:6px; padding:8px; border:1px solid rgba(0,0,0,0.03); display:flex; flex-direction:column; gap:6px; align-items:center; }
-    .weight-input { width:100%; text-align:center; font-weight:600; border-radius:6px; padding:6px; border:1px solid rgba(0,0,0,0.06); background:white; }
-    .inc-row { display:flex; gap:6px; flex-wrap:wrap; justify-content:center; }
-    button { border:0; background:var(--accent); color:white; padding:6px 8px; border-radius:6px; cursor:pointer; font-weight:600; }
-    button.secondary { background:#e6e9f2; color:#111; }
-    button.mini { padding:4px 6px; font-size:13px; }
-    .btn-danger { background:var(--danger); }
-    label { font-size:13px; color:var(--muted); display:block; margin-bottom:6px; }
-    .small { font-size:12px; color:var(--muted); }
-    .controls { display:flex; gap:8px; align-items:center; }
-    .top-actions { display:flex; gap:8px; align-items:center; margin-bottom:12px; }
-    input[type="text"], input[type="number"] { padding:8px; border-radius:6px; border:1px solid rgba(0,0,0,0.06); }
-    .muted { color:var(--muted); font-size:13px; }
-    @media (max-width:880px){
-      .sets { gap:6px; }
-      .set { width:48%; }
-    }
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Progressive 5x5 — Manual-only Progression</title>
+<style>
+:root{
+  --accent:#3b82f6;
+  --muted:#6b7280;
+  --success:#10b981;
+  --danger:#ef4444;
+  --split-left: rgba(16,185,129,0.14);
+  --split-right: rgba(239,68,68,0.12);
+}
+*{box-sizing:border-box}
+body{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:#f5f5f5;margin:0;padding:20px;color:#111}
+.container{max-width:1100px;margin:0 auto}
+.card{background:#fff;padding:18px;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,.06);margin-bottom:18px}
+h1{font-size:1.4rem;margin:0 0 6px}
+p.lead{margin:0;color:var(--muted)}
+.controls{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.week-selector{display:flex;gap:8px;flex-wrap:wrap}
+.week-btn{padding:8px 12px;border-radius:8px;border:2px solid #ddd;background:#fff;font-weight:600;cursor:pointer}
+.week-btn:hover{background:#f3f4f6}
+.week-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.week-btn.deload{background:#fef3c7;border-color:#fbbf24}
+.week-btn.deload.active{background:#fbbf24;color:#78350f}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.day-card{padding:14px;border-radius:8px;border:2px solid transparent;cursor:pointer}
+.day-card:hover{transform:translateY(-4px);transition:transform .12s}
+.day-card.selected{border-color:var(--accent);background:#eff6ff}
+.exercise-card{padding:12px;border-radius:8px;border:1px solid #e6e6e6;margin-bottom:10px;background:#fafafa}
+.set-buttons{display:flex;gap:8px;flex-wrap:wrap}
+.set-btn{
+  position:relative;
+  padding:6px 10px;
+  border-radius:8px;
+  border:1px solid #d1d5db;
+  background:#fff;
+  cursor:pointer;
+  min-width:68px;
+  user-select:none;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+}
+.set-btn .half{display:inline-block;width:50%;text-align:center;padding:6px 8px;pointer-events:none}
+.set-btn .half.left{background:var(--split-left)}
+.set-btn .half.right{background:var(--split-right)}
+.set-btn.pass{background:var(--success);border-color:var(--success);color:#fff}
+.set-btn.fail{background:var(--danger);border-color:var(--danger);color:#fff}
+.set-btn:hover{transform:translateY(-2px);transition:transform .08s}
+.adjust-btn{padding:6px 8px;border-radius:6px;border:1px solid #d1d5db;background:#fff;cursor:pointer}
+.adjust-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.adjust-clear{padding:6px 8px;border-radius:6px;border:1px solid #ef4444;background:#fff;color:#ef4444;cursor:pointer}
+.hidden{display:none}
+.muted{color:var(--muted);font-size:.95rem}
+.flex{display:flex;gap:12px;align-items:center}
+.spacer{flex:1}
+.small{font-size:.9rem}
+.alert{padding:12px;border-radius:8px;background:#dbeafe;border-left:4px solid var(--accent);margin-bottom:14px}
+footer{margin-top:18px;text-align:center;color:var(--muted);font-size:0.9rem}
+@media print{.controls,button{display:none}}
+</style>
 </head>
 <body>
   <div class="container">
-    <header>
-      <h1>Workout Tracker — 5x5 (updated)</h1>
-      <div class="muted">Weight increments: −10, −5, −3, 0, +3, +5, +10 | Weight exercises show 5 sets</div>
-    </header>
+    <div class="card">
+      <h1>Progressive 5x5 — Manual-only Progression</h1>
+      <p class="lead">All progressions are manual. Use the "Change for Next Week" controls under each exercise.</p>
+      <div id="cycleInfo" class="muted small" style="margin-top:10px"></div>
+    </div>
 
-    <section class="card top-actions">
-      <div style="display:flex; gap:12px; align-items:center;">
-        <label for="new-exercise-name">Add exercise</label>
-        <input id="new-exercise-name" placeholder="e.g., Squat" type="text" />
-        <select id="new-exercise-type">
-          <option value="weight">Weight</option>
-          <option value="bodyweight">Bodyweight</option>
-          <option value="cardio">Cardio</option>
-          <option value="other">Other</option>
-        </select>
-        <button id="add-exercise">Add</button>
+    <div class="card controls" aria-label="controls">
+      <div>
+        <strong>Select Week</strong>
+        <div id="weekSelector" class="week-selector" aria-label="week selector"></div>
       </div>
-      <div style="margin-left:auto">
-        <button id="export" class="secondary mini">Export JSON</button>
-        <button id="import" class="secondary mini">Import JSON</button>
-        <button id="clear" class="btn-danger mini">Clear All</button>
+
+      <div class="spacer"></div>
+
+      <div style="min-width:240px;text-align:right">
+        <button id="exportBtn" class="week-btn" title="Export CSV">Download CSV</button>
+        <button id="resetBtn" class="week-btn" title="Reset progress">Reset</button>
       </div>
-    </section>
+    </div>
 
-    <main class="exercises" id="exercises"></main>
+    <div id="weekAlert" class="alert hidden" role="status"></div>
 
-    <section class="card" style="margin-top:18px;">
-      <div class="small">Notes: This version replaces the older small increments (1.5, 3.5, etc.) with the seven increments specified and ensures all weight exercises show 5 sets. We store exact numeric weights in localStorage.</div>
-    </section>
+    <div id="workoutGrid" class="grid"></div>
+
+    <div id="workoutDetail" class="card hidden" aria-live="polite"></div>
+
+    <footer class="muted">LocalStorage — data saved per browser.</footer>
   </div>
 
 <script>
-/*
-  Workout Tracker — single-file replacement (Option 2 behavior)
-  - Weight exercises (type === 'weight') will have 5 sets
-  - Increment buttons for weight-based sets are: -10, -5, -3, 0, +3, +5, +10
-  - All weights are stored exactly in localStorage as numbers
-  - This file includes small sample data; you can remove/replace as needed.
-*/
+(function(){
+  'use strict';
 
-const INC_VALUES = [-10, -5, -3, 0, +3, +5, +10]; // required set of increments
-const SETS_PER_WEIGHT_EXERCISE = 5;
-const STORAGE_KEY = 'wt_5x5_v1';
+  /* ---------- Program (full) ---------- */
+  const PROGRAM = {
+    1: { name: "Upper Body Push", exercises: [
+      { name:"Incline Dumbbell Press", sets:5, startWeight:25, notes:"Focus on upper chest" },
+      { name:"Standing Overhead Press", sets:5, startWeight:20, notes:"Strict form" },
+      { name:"Dumbbell Floor Press", sets:5, startWeight:30, notes:"Protect shoulders" },
+      { name:"Lateral Raises", sets:3, startWeight:10, notes:"Slight bend in elbow" },
+      { name:"Overhead Tricep Extension", sets:3, startWeight:20, notes:"Single DB, both arms" }
+    ]},
+    2: { name: "Lower Body", exercises: [
+      { name:"Goblet Squats", sets:5, startWeight:40, notes:"Hold one DB at chest" },
+      { name:"Romanian Deadlifts", sets:5, startWeight:30, notes:"Hinge at hips" },
+      { name:"Bulgarian Split Squats", sets:4, startWeight:20, notes:"Each leg" },
+      { name:"Dumbbell Lunges", sets:3, startWeight:20, notes:"Each leg, walking" },
+      { name:"Calf Raises", sets:3, startWeight:30, notes:"On step, hold DBs" }
+    ]},
+    3: { name: "Cardio & Core", exercises: [
+      { name:"Treadmill Intervals", sets:1, startWeight:0, notes:"Interval session — no adjustments" },
+      { name:"Plank", sets:5, startTime:30, notes:"Hold:" },
+      { name:"Russian Twists", sets:5, startPerSide:10, notes:"10/side" },
+      { name:"Dumbbell Side Bends", sets:3, startWeight:25, notes:"10 Each Side" },
+      { name:"Lying Leg Raises", sets:5, startReps:10, notes:"" }
+    ]},
+    4: { name: "Upper Body Pull", exercises: [
+      { name:"Bent Over Rows", sets:5, startWeight:35, notes:"Pull to hip" },
+      { name:"Single Arm Row", sets:4, startWeight:40, notes:"Each arm" },
+      { name:"Dumbbell Pullover", sets:4, startWeight:30, notes:"Chest/back combo" },
+      { name:"Hammer Curls", sets:4, startWeight:20, notes:"Neutral grip" },
+      { name:"Reverse Flyes", sets:3, startWeight:12, notes:"Rear delts" }
+    ]},
+    5: { name: "Full Body & Cardio", exercises: [
+      { name:"Dumbbell Clean & Press", sets:4, startWeight:25, notes:"Explosive" },
+      { name:"Goblet Squats", sets:4, startWeight:40, notes:"Similar to Day 2" },
+      { name:"Push-ups", sets:5, startReps:15, notes:"" },
+      { name:"Dumbbell Swings", sets:3, startWeight:30, notes:"Hip drive" },
+      { name:"Treadmill Intervals", sets:1, startWeight:0, notes:"Interval session — no adjustments" }
+    ]}
+  };
 
-function newId() {
-  return 'e' + Math.random().toString(36).slice(2,9);
-}
+  /* ---------- Storage helpers ---------- */
+  const PREFIX = 'prog_manual_v3_';
+  function key(...parts){ return PREFIX + parts.join('|'); }
 
-/* sample data */
-const defaultState = {
-  exercises: [
-    { id: newId(), name: 'Squat', type: 'weight', baseWeight: 135, sets: [135, 135, 135, 135, 135] },
-    { id: newId(), name: 'Bench Press', type: 'weight', baseWeight: 95, sets: [95, 95, 95, 95, 95] },
-    { id: newId(), name: 'Barbell Row', type: 'weight', baseWeight: 65, sets: [65, 65, 65, 65, 65] },
-    { id: newId(), name: 'Push-ups', type: 'bodyweight', notes: '3 sets to failure' },
-    { id: newId(), name: 'Bike', type: 'cardio', notes: '20 min steady' }
-  ]
-};
+  const DS = {
+    getWeek(){ return parseInt(localStorage.getItem(key('week')) || '1', 10); },
+    setWeek(w){ localStorage.setItem(key('week'), String(w)); },
 
-function loadState() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return JSON.parse(JSON.stringify(defaultState));
-    return JSON.parse(raw);
-  } catch(e) {
-    console.error('Failed to load state', e);
-    return JSON.parse(JSON.stringify(defaultState));
-  }
-}
+    saveProgress(week, day, exIdx, setNum, val){ localStorage.setItem(key('p', week, day, exIdx, 's'+setNum), String(val)); },
+    getProgress(week, day, exIdx, setNum){ return localStorage.getItem(key('p', week, day, exIdx, 's'+setNum)) || null; },
+    removeProgress(week, day, exIdx, setNum){ localStorage.removeItem(key('p', week, day, exIdx, 's'+setNum)); },
 
-function saveState(state) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-}
+    // generic value store (weight/time/reps) for specific week/day/ex
+    saveValue(week, day, exIdx, val){ localStorage.setItem(key('v', week, day, exIdx), String(val)); },
+    getValue(week, day, exIdx){ const v = localStorage.getItem(key('v', week, day, exIdx)); return v !== null ? Number(v) : null; },
+    removeValue(week, day, exIdx){ localStorage.removeItem(key('v', week, day, exIdx)); },
 
-/* Utilities for exact storage and arithmetic:
-   We don't force rounding; we allow floats. Buttons change by integer amounts,
-   but direct edits accept decimals (user-friendly).
-*/
-function toNumber(v) {
-  if (v === '' || v === null || v === undefined) return 0;
-  const n = Number(v);
-  return Number.isFinite(n) ? n : 0;
-}
-
-/* DOM helpers */
-const dom = {
-  exercisesEl: document.getElementById('exercises'),
-  addBtn: document.getElementById('add-exercise'),
-  newName: document.getElementById('new-exercise-name'),
-  newType: document.getElementById('new-exercise-type'),
-  exportBtn: document.getElementById('export'),
-  importBtn: document.getElementById('import'),
-  clearBtn: document.getElementById('clear')
-};
-
-let state = loadState();
-
-/* RENDERING */
-function render() {
-  dom.exercisesEl.innerHTML = '';
-  state.exercises.forEach(ex => {
-    const row = document.createElement('div');
-    row.className = 'exercise-row card';
-    // Left: info
-    const info = document.createElement('div');
-    info.className = 'exercise-info';
-    const title = document.createElement('div');
-    title.style.display = 'flex';
-    title.style.justifyContent = 'space-between';
-    title.style.alignItems = 'center';
-
-    const name = document.createElement('div');
-    name.innerHTML = `<strong>${escapeHtml(ex.name)}</strong> <span class="muted">(${escapeHtml(ex.type)})</span>`;
-    title.appendChild(name);
-
-    const actions = document.createElement('div');
-    actions.className = 'controls';
-    const editBtn = document.createElement('button');
-    editBtn.className = 'secondary mini';
-    editBtn.textContent = 'Rename';
-    editBtn.onclick = () => {
-      const n = prompt('Rename exercise', ex.name);
-      if (n !== null) {
-        ex.name = n.trim() || ex.name;
-        saveState(state);
-        render();
+    exportCSV(){
+      const rows = [['key','value']];
+      for(let i=0;i<localStorage.length;i++){
+        const k = localStorage.key(i);
+        if(k && k.startsWith(PREFIX)) rows.push([k, localStorage.getItem(k)]);
       }
-    };
-    const removeBtn = document.createElement('button');
-    removeBtn.className = 'btn-danger mini';
-    removeBtn.textContent = 'Delete';
-    removeBtn.onclick = () => {
-      if (!confirm('Delete exercise?')) return;
-      state.exercises = state.exercises.filter(e => e.id !== ex.id);
-      saveState(state);
-      render();
-    };
-    actions.appendChild(editBtn);
-    actions.appendChild(removeBtn);
-    title.appendChild(actions);
-
-    info.appendChild(title);
-
-    // optional notes/base weight
-    if (ex.type === 'weight') {
-      const lbl = document.createElement('label');
-      lbl.innerText = 'Base weight (editable, used for quick set population)';
-      const baseIn = document.createElement('input');
-      baseIn.type = 'number';
-      baseIn.step = '0.5';
-      baseIn.className = 'weight-input';
-      baseIn.value = toNumber(ex.baseWeight);
-      baseIn.onchange = () => {
-        ex.baseWeight = toNumber(baseIn.value);
-        // if sets missing or shorter, ensure 5 sets exist when weight-based:
-        ex.sets = ensureSetsArray(ex.sets, SETS_PER_WEIGHT_EXERCISE, ex.baseWeight);
-        saveState(state);
-        render(); // re-render to update set inputs
-      };
-      lbl.appendChild(baseIn);
-      info.appendChild(lbl);
-    } else {
-      const lbl = document.createElement('label');
-      lbl.textContent = 'Notes';
-      const notes = document.createElement('input');
-      notes.type = 'text';
-      notes.value = ex.notes || '';
-      notes.onchange = () => {
-        ex.notes = notes.value;
-        saveState(state);
-      };
-      lbl.appendChild(notes);
-      info.appendChild(lbl);
+      return rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+    },
+    resetAll(){
+      const toRemove = [];
+      for(let i=0;i<localStorage.length;i++){
+        const k = localStorage.key(i);
+        if(k && k.startsWith(PREFIX)) toRemove.push(k);
+      }
+      toRemove.forEach(k => localStorage.removeItem(k));
     }
+  };
 
-    // Right: controls (sets / increments)
-    const ctr = document.createElement('div');
-    ctr.className = 'exercise-controls';
+  /* ---------- DOM refs ---------- */
+  const dom = {
+    cycleInfo: document.getElementById('cycleInfo'),
+    weekSelector: document.getElementById('weekSelector'),
+    grid: document.getElementById('workoutGrid'),
+    detail: document.getElementById('workoutDetail'),
+    exportBtn: document.getElementById('exportBtn'),
+    resetBtn: document.getElementById('resetBtn'),
+    weekAlert: document.getElementById('weekAlert')
+  };
 
-    if (ex.type === 'weight') {
-      // Ensure ex.sets exists and has exactly 5 sets
-      ex.sets = ensureSetsArray(ex.sets, SETS_PER_WEIGHT_EXERCISE, ex.baseWeight || 0);
+  function clear(el){ while(el.firstChild) el.removeChild(el.firstChild); }
 
-      const setsWrap = document.createElement('div');
-      setsWrap.className = 'sets';
-      ex.sets.forEach((w, idx) => {
-        const setEl = document.createElement('div');
-        setEl.className = 'set';
-        setEl.innerHTML = `<div class="small">Set ${idx+1}</div>`;
-        const input = document.createElement('input');
-        input.type = 'number';
-        input.step = '0.5';
-        input.className = 'weight-input';
-        input.value = w;
-        input.onchange = () => {
-          ex.sets[idx] = toNumber(input.value);
-          saveState(state);
-        };
-        setEl.appendChild(input);
+  /* ---------- Helpers for displayed value ---------- */
+  function getDisplayedValue(week, day, exIdx, exDef){
+    const saved = DS.getValue(week, day, exIdx);
+    if (saved !== null) return saved;
+    if (exDef.hasOwnProperty('startWeight')) return exDef.startWeight;
+    if (exDef.hasOwnProperty('startTime')) return exDef.startTime;
+    if (exDef.hasOwnProperty('startPerSide')) return exDef.startPerSide;
+    if (exDef.hasOwnProperty('startReps')) return exDef.startReps;
+    return 0;
+  }
 
-        // increment row
-        const incRow = document.createElement('div');
-        incRow.className = 'inc-row';
-        INC_VALUES.forEach(v => {
-          const b = document.createElement('button');
-          b.className = 'secondary mini';
-          b.textContent = (v > 0 ? '+'+v : v.toString());
-          b.onclick = () => {
-            // update exact number without rounding
-            const current = toNumber(ex.sets[idx]);
-            const updated = current + v;
-            ex.sets[idx] = updated;
-            saveState(state);
-            render(); // re-render so displayed value syncs
-          };
-          incRow.appendChild(b);
+  /* ---------- Rendering helpers ---------- */
+  function renderWeekSelector(currentWeek){
+    clear(dom.weekSelector);
+    for(let w=1; w<=12; w++){
+      const btn = document.createElement('button');
+      btn.type='button'; btn.className='week-btn'; btn.textContent = 'Week ' + w;
+      if (w === currentWeek) btn.classList.add('active');
+      if (w % 4 === 0) btn.classList.add('deload');
+      btn.addEventListener('click', ()=>{ DS.setWeek(w); render(); });
+      dom.weekSelector.appendChild(btn);
+    }
+  }
+
+  function renderDaysGrid(){
+    clear(dom.grid);
+    const days = Object.keys(PROGRAM).map(k => parseInt(k,10)).sort((a,b)=>a-b);
+    days.forEach(day => {
+      const def = PROGRAM[day];
+      const card = document.createElement('div');
+      card.className = 'card day-card';
+      card.tabIndex = 0;
+      card.innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <strong>Day ${day}</strong>
+          <span class="muted small">${def.name}</span>
+        </div>
+        <div class="small muted" style="margin-top:8px">${def.exercises.length} exercises</div>`;
+      card.addEventListener('click', ()=> selectDay(day));
+      card.addEventListener('keydown', ev => { if(ev.key === 'Enter' || ev.key === ' '){ ev.preventDefault(); selectDay(day); } });
+      dom.grid.appendChild(card);
+    });
+  }
+
+  /* ---------- Main render for workout detail ---------- */
+  function renderWorkoutDetail(week, day){
+    if (!day){
+      dom.detail.classList.add('hidden');
+      dom.detail.innerHTML = '';
+      return;
+    }
+    dom.detail.classList.remove('hidden');
+    clear(dom.detail);
+
+    const def = PROGRAM[day];
+    const heading = document.createElement('div');
+    heading.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center">
+      <div><strong>Day ${day} — ${def.name}</strong><div class="muted small">${def.exercises.length} exercises</div></div>
+      <div class="muted small">Week ${week}</div>
+    </div>`;
+    dom.detail.appendChild(heading);
+
+    // iterate exercises
+    for (let idx = 0; idx < def.exercises.length; idx++){
+      const ex = def.exercises[idx];
+      const exIdx = idx + 1;
+      // Force 5 sets for all weight-based exercises (preserve UI/layout; override set count)
+      if (ex.hasOwnProperty('startWeight')) {
+        ex.sets = 5;
+      }
+
+      const exCard = document.createElement('div'); exCard.className = 'exercise-card';
+
+      const displayed = getDisplayedValue(week, day, exIdx, ex);
+
+      // subtitle logic
+      let subtitleHTML = '';
+      if (ex.hasOwnProperty('startTime')) {
+        subtitleHTML = `<div class="muted small">Hold: ${displayed} s</div>`;
+      } else if (ex.hasOwnProperty('startPerSide')) {
+        subtitleHTML = `<div class="muted small">${ex.notes || ''} — ${displayed}/side</div>`;
+      } else if (ex.hasOwnProperty('startReps')) {
+        subtitleHTML = `<div class="muted small">${displayed} reps per set</div>`;
+      } else {
+        subtitleHTML = `<div class="muted small">${ex.notes || ''}</div>`;
+      }
+
+      exCard.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div>
+          <div style="font-weight:700">${ex.name}</div>
+          ${subtitleHTML}
+        </div>
+        <div style="text-align:right">
+          <div style="font-weight:700">${(ex.hasOwnProperty('startTime') ? displayed + ' s' : (ex.hasOwnProperty('startPerSide') ? displayed + '/side' : (ex.hasOwnProperty('startReps') ? displayed + ' reps' : displayed + ' lbs')) )}</div>
+        </div>
+      </div>
+      <div style="margin-top:10px" id="ex_${day}_${exIdx}"></div>`;
+
+      dom.detail.appendChild(exCard);
+      const placeholder = exCard.querySelector(`#ex_${day}_${exIdx}`);
+
+      // set buttons (pass/fail/dbl click clear)
+      const setRow = document.createElement('div'); setRow.className = 'set-buttons';
+      for (let s = 1; s <= ex.sets; s++){
+        const btn = document.createElement('button'); btn.type='button'; btn.className='set-btn';
+        const left = document.createElement('span'); left.className='half left'; left.textContent='✓';
+        const right = document.createElement('span'); right.className='half right'; right.textContent='✗';
+        btn.appendChild(left); btn.appendChild(right);
+
+        const state = DS.getProgress(week, day, exIdx, s);
+        if (state === 'complete') btn.classList.add('pass');
+        else if (state === 'failed') btn.classList.add('fail');
+
+        btn.addEventListener('click', (ev)=>{
+          const rect = btn.getBoundingClientRect();
+          const clickX = ev.clientX - rect.left;
+          const half = rect.width / 2;
+          if (ev.detail === 2){
+            DS.removeProgress(week, day, exIdx, s);
+            btn.classList.remove('pass','fail');
+            return;
+          }
+          if (clickX < half){
+            DS.saveProgress(week, day, exIdx, s, 'complete');
+            btn.classList.remove('fail'); btn.classList.add('pass');
+          } else {
+            DS.saveProgress(week, day, exIdx, s, 'failed');
+            btn.classList.remove('pass'); btn.classList.add('fail');
+          }
         });
 
-        // a quick copy-from-base button
-        const copyBtn = document.createElement('button');
-        copyBtn.className = 'mini';
-        copyBtn.textContent = 'Use base';
-        copyBtn.onclick = () => {
-          ex.sets[idx] = toNumber(ex.baseWeight);
-          saveState(state);
-          render();
-        };
+        setRow.appendChild(btn);
+      }
+      placeholder.appendChild(setRow);
 
-        setEl.appendChild(incRow);
-        setEl.appendChild(copyBtn);
+      // next-week controls
+      const nextWeek = (week % 12) + 1;
 
-        setsWrap.appendChild(setEl);
-      });
+      // Treadmill: informational only
+      if (ex.name.toLowerCase().includes('treadmill')) {
+        const note = document.createElement('div'); note.className='muted small'; note.style.marginTop='8px';
+        note.textContent = 'No next-week adjustments for treadmill intervals.';
+        placeholder.appendChild(note);
+        continue;
+      }
 
-      ctr.appendChild(setsWrap);
+      // Plank (time)
+      if (ex.hasOwnProperty('startTime')) {
+        const wrap = document.createElement('div'); wrap.style.marginTop='10px';
+        wrap.innerHTML = `<div style="font-weight:700;margin-bottom:6px">Change for Next Week (seconds)</div>`;
+        const planned = DS.getValue(nextWeek, day, exIdx);
+        const plannedText = document.createElement('div'); plannedText.className='muted small'; plannedText.style.marginBottom='6px';
+        plannedText.textContent = 'Planned next-week time: ' + (planned !== null ? planned + ' s' : 'none');
+        wrap.appendChild(plannedText);
 
-    } else {
-      // Non weight-based: show a simple reps/sets field (user editable)
-      const lbl = document.createElement('label');
-      lbl.textContent = 'Details';
-      const details = document.createElement('input');
-      details.type = 'text';
-      details.value = ex.notes || '';
-      details.onchange = () => {
-        ex.notes = details.value;
-        saveState(state);
-      };
-      lbl.appendChild(details);
-      ctr.appendChild(lbl);
+        const deltas = [-30,-20,-10,0,10,20,30];
+        const row = document.createElement('div'); row.style.display='flex'; row.style.gap='8px'; row.style.flexWrap='wrap';
+        deltas.forEach(delta=>{
+          const btn = document.createElement('button'); btn.type='button'; btn.className='adjust-btn';
+          btn.textContent = (delta>0? '+'+delta : String(delta));
+          if (planned !== null && Math.round(planned) === Math.round(displayed + delta)) btn.classList.add('active');
+          btn.addEventListener('click', ()=>{
+            const nextVal = Math.round(displayed + delta);
+            DS.saveValue(nextWeek, day, exIdx, nextVal);
+            render();
+          });
+          row.appendChild(btn);
+        });
+        const clr = document.createElement('button'); clr.type='button'; clr.className='adjust-clear'; clr.textContent='Clear';
+        clr.addEventListener('click', ()=>{ DS.removeValue(nextWeek, day, exIdx); render(); });
+        row.appendChild(clr);
+
+        wrap.appendChild(row);
+        placeholder.appendChild(wrap);
+        continue;
+      }
+
+      // Russian Twists (per-side reps)
+      if (ex.hasOwnProperty('startPerSide')) {
+        const wrap = document.createElement('div'); wrap.style.marginTop='10px';
+        wrap.innerHTML = `<div style="font-weight:700;margin-bottom:6px">Change for Next Week (reps per side)</div>`;
+        const planned = DS.getValue(nextWeek, day, exIdx);
+        const plannedText = document.createElement('div'); plannedText.className='muted small'; plannedText.style.marginBottom='6px';
+        plannedText.textContent = 'Planned next-week per-side: ' + (planned !== null ? planned + ' /side' : 'none');
+        wrap.appendChild(plannedText);
+
+        const deltas = [-10,-5,-3,0,3,5,10];
+        const row = document.createElement('div'); row.style.display='flex'; row.style.gap='8px'; row.style.flexWrap='wrap';
+        deltas.forEach(delta=>{
+          const btn = document.createElement('button'); btn.type='button'; btn.className='adjust-btn';
+          btn.textContent = (delta>0? '+'+delta : String(delta));
+          if (planned !== null && Math.round(planned) === Math.round(displayed + delta)) btn.classList.add('active');
+          btn.addEventListener('click', ()=>{
+            const nextVal = Math.round(displayed + delta);
+            DS.saveValue(nextWeek, day, exIdx, nextVal);
+            render();
+          });
+          row.appendChild(btn);
+        });
+        const clr = document.createElement('button'); clr.type='button'; clr.className='adjust-clear'; clr.textContent='Clear';
+        clr.addEventListener('click', ()=>{ DS.removeValue(nextWeek, day, exIdx); render(); });
+        row.appendChild(clr);
+
+        wrap.appendChild(row);
+        placeholder.appendChild(wrap);
+        continue;
+      }
+
+      // Lying Leg Raises and Push-ups (reps per set)
+      if (ex.hasOwnProperty('startReps')) {
+        const wrap = document.createElement('div'); wrap.style.marginTop='10px';
+        wrap.innerHTML = `<div style="font-weight:700;margin-bottom:6px">Change for Next Week (reps per set)</div>`;
+        const planned = DS.getValue(nextWeek, day, exIdx);
+        const plannedText = document.createElement('div'); plannedText.className='muted small'; plannedText.style.marginBottom='6px';
+        plannedText.textContent = 'Planned next-week reps per set: ' + (planned !== null ? planned + ' reps' : 'none');
+        wrap.appendChild(plannedText);
+
+        const deltas = [-10,-5,-3,0,3,5,10];
+        const row = document.createElement('div'); row.style.display='flex'; row.style.gap='8px'; row.style.flexWrap='wrap';
+        deltas.forEach(delta=>{
+          const btn = document.createElement('button'); btn.type='button'; btn.className='adjust-btn';
+          btn.textContent = (delta>0? '+'+delta : String(delta));
+          if (planned !== null && Math.round(planned) === Math.round(displayed + delta)) btn.classList.add('active');
+          btn.addEventListener('click', ()=>{
+            const nextVal = Math.round(displayed + delta);
+            DS.saveValue(nextWeek, day, exIdx, nextVal);
+            render();
+          });
+          row.appendChild(btn);
+        });
+        const clr = document.createElement('button'); clr.type='button'; clr.className='adjust-clear'; clr.textContent='Clear';
+        clr.addEventListener('click', ()=>{ DS.removeValue(nextWeek, day, exIdx); render(); });
+        row.appendChild(clr);
+
+        wrap.appendChild(row);
+        placeholder.appendChild(wrap);
+        continue;
+      }
+
+      // Default: weight adjustments (weights everywhere else, including dumbbell side bends)
+      {
+        const wrap = document.createElement('div'); wrap.style.marginTop='10px';
+        wrap.innerHTML = `<div style="font-weight:700;margin-bottom:6px">Weight change for next week</div>`;
+        const planned = DS.getValue(nextWeek, day, exIdx);
+        const plannedText = document.createElement('div'); plannedText.className='muted small'; plannedText.style.marginBottom='6px';
+        plannedText.textContent = 'Planned next-week weight: ' + (planned !== null ? planned + ' lbs' : 'none');
+        wrap.appendChild(plannedText);
+
+        // NEW final weight buttons:
+        const deltas = [-10, -5, -3, 0, 3, 5, 10];
+        const row = document.createElement('div'); row.style.display='flex'; row.style.gap='8px'; row.style.flexWrap='wrap';
+        deltas.forEach(delta=>{
+          const btn = document.createElement('button'); btn.type='button'; btn.className='adjust-btn';
+          btn.textContent = (delta>0? '+'+delta : String(delta));
+          // active if planned equals displayed + delta (exact equality using rounding to 3 decimals)
+          const plannedMatches = (planned !== null) && Math.abs(planned - (displayed + delta)) < 0.0005;
+          if (plannedMatches) btn.classList.add('active');
+          btn.addEventListener('click', ()=>{
+            const nextVal = displayed + delta; // exact value, allow decimals
+            DS.saveValue(nextWeek, day, exIdx, nextVal);
+            render();
+          });
+          row.appendChild(btn);
+        });
+        const clr = document.createElement('button'); clr.type='button'; clr.className='adjust-clear'; clr.textContent='Clear';
+        clr.addEventListener('click', ()=>{ DS.removeValue(nextWeek, day, exIdx); render(); });
+        row.appendChild(clr);
+
+        wrap.appendChild(row);
+        placeholder.appendChild(wrap);
+      }
+
+    } // end exercises loop
+  } // end renderWorkoutDetail
+
+  /* ---------- render glue ---------- */
+  function render(){
+    const week = DS.getWeek();
+    dom.cycleInfo.textContent = `Week ${week}`;
+    renderWeekSelector(week);
+    renderDaysGrid();
+    const sel = window._selectedDay || null;
+    if (sel) renderWorkoutDetail(week, sel);
+    else { dom.detail.classList.add('hidden'); dom.detail.innerHTML = ''; }
+  }
+
+  function renderWeekSelector(currentWeek){
+    clear(dom.weekSelector);
+    for(let w=1; w<=12; w++){
+      const btn = document.createElement('button'); btn.type='button'; btn.className='week-btn'; btn.textContent='Week ' + w;
+      if (w === currentWeek) btn.classList.add('active');
+      if (w % 4 === 0) btn.classList.add('deload');
+      btn.addEventListener('click', ()=>{ DS.setWeek(w); render(); });
+      dom.weekSelector.appendChild(btn);
     }
+  }
 
-    row.appendChild(info);
-    row.appendChild(ctr);
-    dom.exercisesEl.appendChild(row);
+  function renderDaysGrid(){
+    clear(dom.grid);
+    const days = Object.keys(PROGRAM).map(k => parseInt(k,10)).sort((a,b)=>a-b);
+    days.forEach(day => {
+      const def = PROGRAM[day];
+      const card = document.createElement('div');
+      card.className = 'card day-card';
+      card.tabIndex = 0;
+      card.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center"><strong>Day ${day}</strong><span class="muted small">${def.name}</span></div><div class="small muted" style="margin-top:8px">${def.exercises.length} exercises</div>`;
+      card.addEventListener('click', ()=> selectDay(day));
+      card.addEventListener('keydown', ev=>{ if(ev.key==='Enter' || ev.key===' '){ ev.preventDefault(); selectDay(day); } });
+      dom.grid.appendChild(card);
+    });
+  }
+
+  function selectDay(day){
+    window._selectedDay = day;
+    const week = DS.getWeek();
+    renderWorkoutDetail(week, day);
+    document.querySelectorAll('.day-card').forEach(el=>{
+      if (el.textContent.includes('Day '+day)) el.classList.add('selected'); else el.classList.remove('selected');
+    });
+  }
+
+  /* ---------- export/reset handlers ---------- */
+  dom.exportBtn.addEventListener('click', ()=>{
+    try {
+      const csv = DS.exportCSV();
+      const blob = new Blob([csv], {type:'text/csv'});
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'workout-export.csv'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(a.href);
+    } catch(e){ alert('Export failed: '+e.message); }
   });
-}
 
-/* Ensure a sets array exists and is EXACTLY desired length.
-   If missing, fill from baseWeight or zero.
-*/
-function ensureSetsArray(arr, length, baseWeight) {
-  const result = Array.isArray(arr) ? arr.slice(0, length) : [];
-  while (result.length < length) {
-    result.push(baseWeight !== undefined ? toNumber(baseWeight) : 0);
-  }
-  return result;
-}
-
-/* Add / Remove handlers */
-dom.addBtn.addEventListener('click', () => {
-  const name = dom.newName.value.trim();
-  if (!name) {
-    alert('Please enter an exercise name');
-    return;
-  }
-  const type = dom.newType.value;
-  const ex = { id: newId(), name, type };
-  if (type === 'weight') {
-    ex.baseWeight = 45;
-    ex.sets = ensureSetsArray([], SETS_PER_WEIGHT_EXERCISE, ex.baseWeight);
-  } else {
-    ex.notes = '';
-  }
-  state.exercises.push(ex);
-  saveState(state);
-  dom.newName.value = '';
-  render();
-});
-
-/* Export / Import / Clear */
-dom.exportBtn.addEventListener('click', () => {
-  const data = JSON.stringify(state, null, 2);
-  prompt('Copy this JSON to backup or transfer to another device', data);
-});
-dom.importBtn.addEventListener('click', () => {
-  const txt = prompt('Paste JSON export here');
-  if (!txt) return;
-  try {
-    const obj = JSON.parse(txt);
-    if (!obj || !Array.isArray(obj.exercises)) throw new Error('Invalid');
-    state = obj;
-    saveState(state);
+  dom.resetBtn.addEventListener('click', ()=>{
+    if (!confirm('Reset all saved program data? This cannot be undone.')) return;
+    DS.resetAll();
+    window._selectedDay = null;
     render();
-  } catch (e) {
-    alert('Import failed: ' + e.message);
-  }
-});
-dom.clearBtn.addEventListener('click', () => {
-  if (!confirm('Clear all data (this cannot be undone)?')) return;
-  state = { exercises: [] };
-  saveState(state);
+  });
+
+  // initialize default week
+  if (!localStorage.getItem(key('week'))) DS.setWeek(1);
+
+  // initial render
   render();
-});
 
-/* escape helper to keep display safe */
-function escapeHtml(s) {
-  return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-}
+  // expose for debugging
+  window._workoutApp = { DS, PROGRAM, render };
 
-/* Initialize */
-render();
-
+})();
 </script>
 </body>
 </html>
