@@ -98,6 +98,7 @@ footer{margin-top:18px;text-align:center;color:var(--muted);font-size:0.9rem}
 <script>
 (function(){
 'use strict';
+
 const PROGRAM={
   1:{name:"Upper Body Push",exercises:[
     {name:"Incline Dumbbell Press",sets:5,startWeight:25,notes:"Focus on upper chest"},
@@ -131,7 +132,7 @@ const PROGRAM={
     {name:"Treadmill Intervals",sets:1,startWeight:0,notes:"Interval session — no adjustments"}]}
 };
 
-const PREFIX='prog_manual_v10_';
+const PREFIX='prog_manual_v12_';
 function key(...parts){return PREFIX+parts.join('|');}
 const DS={
   getWeek(){return parseInt(localStorage.getItem(key('week'))||'1',10);},
@@ -144,6 +145,8 @@ const DS={
   removeValue(w,d,e){localStorage.removeItem(key('v',w,d,e));},
   resetAll(){for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.startsWith(PREFIX))localStorage.removeItem(k);}}
 };
+
+const expandedDays={};
 
 const dom={
   cycleInfo:document.getElementById('cycleInfo'),
@@ -158,8 +161,18 @@ function getDisplayedValue(w,d,eIdx,ex){const v=DS.getValue(w,d,eIdx);if(v!==nul
 function allSetsComplete(w,d){const exs=PROGRAM[d].exercises;for(let i=0;i<exs.length;i++){for(let s=1;s<=exs[i].sets;s++){if(!DS.getProgress(w,d,i+1,s))return false;}}return true;}
 function allWeeksComplete(){for(let w=1;w<=12;w++){for(let d in PROGRAM){if(!allSetsComplete(w,d))return false;}}return true;}
 
-function renderWeekSelector(currentWeek){clear(dom.weekSelector);for(let w=1;w<=12;w++){const btn=document.createElement('button');btn.type='button';btn.className='week-btn';btn.textContent='Week '+w;if(w===currentWeek)btn.classList.add('active');if(w%4===0)btn.classList.add('deload');btn.addEventListener('click',()=>{DS.setWeek(w);renderDaysGrid();});dom.weekSelector.appendChild(btn);}}
+function renderWeekSelector(currentWeek){
+  clear(dom.weekSelector);
+  for(let w=1;w<=12;w++){
+    const btn=document.createElement('button');btn.type='button';btn.className='week-btn';btn.textContent='Week '+w;
+    if(w===currentWeek)btn.classList.add('active');
+    if(w%4===0)btn.classList.add('deload');
+    btn.addEventListener('click',()=>{DS.setWeek(w);renderDaysGrid();});
+    dom.weekSelector.appendChild(btn);
+  }
+}
 
+// --- renderDaysGrid with auto-collapse completed days ---
 function renderDaysGrid(){
   const week=DS.getWeek();
   dom.cycleInfo.textContent='Week '+week;
@@ -168,11 +181,22 @@ function renderDaysGrid(){
   const days=Object.keys(PROGRAM).map(k=>parseInt(k,10)).sort((a,b)=>a-b);
   days.forEach(day=>{
     const def=PROGRAM[day];
-    const card=document.createElement('div');card.className='card day-card';if(allSetsComplete(week,day))card.classList.add('complete');
+    const card=document.createElement('div');card.className='card day-card';
+    if(allSetsComplete(week,day)) card.classList.add('complete');
     card.tabIndex=0;
     card.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center"><strong>Day ${day}</strong><span class="muted small">${def.name}</span></div>`;
     const container=document.createElement('div');container.id='dayExercises_'+day;card.appendChild(container);
-    card.addEventListener('click',(e)=>{if(e.target===card.firstChild || e.target===card)card.classList.toggle('expanded');});
+
+    // Auto-collapse completed day
+    if(allSetsComplete(week,day)) expandedDays[day]=false;
+
+    if(expandedDays[day]) card.classList.add('expanded');
+    card.addEventListener('click', e => {
+      if(e.target===card || e.target===card.firstChild){
+        expandedDays[day] = !expandedDays[day];
+        renderDaysGrid();
+      }
+    });
     dom.grid.appendChild(card);
     renderExercises(week,day);
   });
@@ -186,7 +210,7 @@ function renderDaysGrid(){
   }
 }
 
-// --- renderExercises function with full stopPropagation and updated weight deltas
+// --- renderExercises function (same as previous version, including ±2,3,5,10 weights, reps/time adjustments, set buttons, only refresh the day) ---
 function renderExercises(week,day){
   const container=document.getElementById('dayExercises_'+day);
   clear(container);
@@ -215,55 +239,62 @@ function renderExercises(week,day){
       btn.appendChild(left);btn.appendChild(right);
       const state=DS.getProgress(week,day,exIdx,s);
       if(state==='complete') btn.classList.add('pass'); else if(state==='failed') btn.classList.add('fail');
-      btn.addEventListener('click',e=>{e.stopPropagation(); const rect=btn.getBoundingClientRect(); const clickX=e.clientX-rect.left;if(e.detail===2){DS.removeProgress(week,day,exIdx,s);renderDaysGrid();return;} const half=rect.width/2;if(clickX<half){DS.saveProgress(week,day,exIdx,s,'complete');btn.classList.remove('fail');btn.classList.add('pass');}else{DS.saveProgress(week,day,exIdx,s,'failed');btn.classList.remove('pass');btn.classList.add('fail');} renderDaysGrid();});
+      btn.addEventListener('click', e=>{
+        e.stopPropagation();
+        const rect=btn.getBoundingClientRect();
+        const clickX=e.clientX-rect.left;
+        if(e.detail===2){DS.removeProgress(week,day,exIdx,s); renderExercises(week,day); return;}
+        const half=rect.width/2;
+        if(clickX<half){DS.saveProgress(week,day,exIdx,s,'complete'); btn.classList.remove('fail'); btn.classList.add('pass');}
+        else{DS.saveProgress(week,day,exIdx,s,'failed'); btn.classList.remove('pass'); btn.classList.add('fail');}
+        renderExercises(week,day);
+      });
       setRow.appendChild(btn);
     }
     placeholder.appendChild(setRow);
 
-    // --- Weight adjustments with expanded deltas ±2,3,5,10 ---
+    // Weight adjustments
     if(ex.hasOwnProperty('startWeight')){
       const nextWeek=(week%12)+1;
       const wrap=document.createElement('div');wrap.style.marginTop='10px';
       wrap.innerHTML=`<div style="font-weight:700;margin-bottom:6px">Weight change for next week</div>`;
       const planned=DS.getValue(nextWeek,day,exIdx);
       const plannedText=document.createElement('div');plannedText.className='muted small';plannedText.style.marginBottom='6px';
-      plannedText.textContent='Planned next-week weight: '+(planned!==null?planned+' lbs':'none');
-      wrap.appendChild(plannedText);
+      plannedText.textContent='Planned next-week weight: '+(planned!==null?planned+' lbs':'none'); wrap.appendChild(plannedText);
       const deltas=[-10,-5,-3,-2,0,2,3,5,10];
       const row=document.createElement('div');row.style.display='flex';row.style.gap='8px';row.style.flexWrap='wrap';
       deltas.forEach(delta=>{
         const btn=document.createElement('button');btn.type='button';btn.className='adjust-btn';btn.textContent=(delta>0?'+'+delta:String(delta));
         if(planned!==null && Math.abs(planned-(displayed+delta))<0.0005) btn.classList.add('active');
-        btn.addEventListener('click',e=>{e.stopPropagation(); DS.saveValue(nextWeek,day,exIdx,displayed+delta); renderDaysGrid();});
+        btn.addEventListener('click', e=>{e.stopPropagation(); DS.saveValue(nextWeek,day,exIdx,displayed+delta); renderExercises(week,day);});
         row.appendChild(btn);
       });
       const clr=document.createElement('button');clr.type='button';clr.className='adjust-clear';clr.textContent='Clear';
-      clr.addEventListener('click',e=>{e.stopPropagation(); DS.removeValue(nextWeek,day,exIdx); renderDaysGrid();});
-      row.appendChild(clr);wrap.appendChild(row); placeholder.appendChild(wrap);
+      clr.addEventListener('click', e=>{e.stopPropagation(); DS.removeValue(nextWeek,day,exIdx); renderExercises(week,day);});
+      row.appendChild(clr); wrap.appendChild(row); placeholder.appendChild(wrap);
     }
 
-    // --- Time/Reps adjustments ---
+    // Reps/time adjustments
     if(ex.hasOwnProperty('startTime') || ex.hasOwnProperty('startPerSide') || ex.hasOwnProperty('startReps')){
       const nextWeek=(week%12)+1; const wrap=document.createElement('div');wrap.style.marginTop='10px';
-      let title='';let deltas=[];
-      if(ex.hasOwnProperty('startTime')){title='Change for Next Week (seconds)';deltas=[-30,-20,-10,0,10,20,30];}
-      else if(ex.hasOwnProperty('startPerSide')){title='Change for Next Week (reps per side)';deltas=[-10,-5,-3,0,3,5,10];}
-      else if(ex.hasOwnProperty('startReps')){title='Change for Next Week (reps per set)';deltas=[-10,-5,-3,0,3,5,10];}
+      let title=''; let deltas=[];
+      if(ex.hasOwnProperty('startTime')){title='Change for Next Week (seconds)'; deltas=[-30,-20,-10,0,10,20,30];}
+      else if(ex.hasOwnProperty('startPerSide')){title='Change for Next Week (reps per side)'; deltas=[-10,-5,-3,0,3,5,10];}
+      else if(ex.hasOwnProperty('startReps')){title='Change for Next Week (reps per set)'; deltas=[-10,-5,-3,0,3,5,10];}
       wrap.innerHTML=`<div style="font-weight:700;margin-bottom:6px">${title}</div>`;
       const planned=DS.getValue(nextWeek,day,exIdx);
       const plannedText=document.createElement('div');plannedText.className='muted small';plannedText.style.marginBottom='6px';
-      plannedText.textContent='Planned next-week: '+(planned!==null?(ex.hasOwnProperty('startTime')?planned+' s':ex.hasOwnProperty('startPerSide')?planned+' /side':planned+' reps'):'none');
-      wrap.appendChild(plannedText);
+      plannedText.textContent='Planned next-week: '+(planned!==null?(ex.hasOwnProperty('startTime')?planned+' s':ex.hasOwnProperty('startPerSide')?planned+' /side':planned+' reps'):'none'); wrap.appendChild(plannedText);
       const row=document.createElement('div');row.style.display='flex';row.style.gap='8px';row.style.flexWrap='wrap';
       deltas.forEach(delta=>{
         const btn=document.createElement('button');btn.type='button';btn.className='adjust-btn';btn.textContent=(delta>0?'+'+delta:String(delta));
         if(planned!==null && Math.round(planned)===Math.round(displayed+delta)) btn.classList.add('active');
-        btn.addEventListener('click',e=>{e.stopPropagation(); DS.saveValue(nextWeek,day,exIdx,Math.round(displayed+delta)); renderDaysGrid();});
+        btn.addEventListener('click', e=>{e.stopPropagation(); DS.saveValue(nextWeek,day,exIdx,Math.round(displayed+delta)); renderExercises(week,day);});
         row.appendChild(btn);
       });
       const clr=document.createElement('button');clr.type='button';clr.className='adjust-clear';clr.textContent='Clear';
-      clr.addEventListener('click',e=>{e.stopPropagation(); DS.removeValue(nextWeek,day,exIdx); renderDaysGrid();});
-      row.appendChild(clr);wrap.appendChild(row); placeholder.appendChild(wrap);
+      clr.addEventListener('click', e=>{e.stopPropagation(); DS.removeValue(nextWeek,day,exIdx); renderExercises(week,day);});
+      row.appendChild(clr); wrap.appendChild(row); placeholder.appendChild(wrap);
     }
 
   });
@@ -274,7 +305,7 @@ if(!localStorage.getItem(key('week'))) DS.setWeek(1);
 renderWeekSelector(DS.getWeek());
 renderDaysGrid();
 
-// --- WAKE LOCK --- only after first user interaction
+// --- WAKE LOCK ---
 let wakeLock=null;
 async function requestWakeLock(){
   try{
