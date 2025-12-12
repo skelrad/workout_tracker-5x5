@@ -104,32 +104,37 @@ const PROGRAM={
     {name:"Incline Dumbbell Press",sets:5,startWeight:25,notes:"Focus on upper chest"},
     {name:"Standing Overhead Press",sets:5,startWeight:20,notes:"Strict form"},
     {name:"Dumbbell Floor Press",sets:5,startWeight:30,notes:"Protect shoulders"},
-    {name:"Lateral Raises",sets:3,startWeight:10,notes:"Slight bend in elbow"},
-    {name:"Overhead Tricep Extension",sets:3,startWeight:20,notes:"Single DB, both arms"}]},
+    {name:"Lateral Raises",sets:5,startWeight:10,notes:"Slight bend in elbow"},        // changed from 3 → 5
+    {name:"Overhead Tricep Extension",sets:5,startWeight:20,notes:"Single DB, both arms"} // changed from 3 → 5
+  ]},
   2:{name:"Lower Body",exercises:[
     {name:"Goblet Squats",sets:5,startWeight:40,notes:"Hold one DB at chest"},
     {name:"Romanian Deadlifts",sets:5,startWeight:30,notes:"Hinge at hips"},
-    {name:"Bulgarian Split Squats",sets:4,startWeight:20,notes:"Each leg"},
-    {name:"Dumbbell Lunges",sets:3,startWeight:20,notes:"Each leg, walking"},
-    {name:"Calf Raises",sets:3,startWeight:30,notes:"On step, hold DBs"}]},
+    {name:"Bulgarian Split Squats",sets:5,startWeight:20,notes:"Each leg"},             // changed from 4 → 5
+    {name:"Dumbbell Lunges",sets:5,startWeight:20,notes:"Each leg, walking"},          // changed from 3 → 5
+    {name:"Calf Raises",sets:5,startWeight:30,notes:"On step, hold DBs"}               // changed from 3 → 5
+  ]},
   3:{name:"Cardio & Core",exercises:[
-    {name:"Treadmill Intervals",sets:1,startWeight:0,notes:"Interval session — no adjustments"},
+    {name:"Treadmill Intervals",sets:5,startWeight:0,notes:"Interval session — no adjustments"}, // changed from 1 → 5
     {name:"Plank",sets:5,startTime:30,notes:"Hold:"},
     {name:"Russian Twists",sets:5,startPerSide:10,notes:"10/side"},
-    {name:"Dumbbell Side Bends",sets:3,startWeight:25,notes:"10 Each Side"},
-    {name:"Lying Leg Raises",sets:5,startReps:10,notes:""}]},
+    {name:"Dumbbell Side Bends",sets:5,startWeight:25,notes:"10 Each Side"},          // changed from 3 → 5
+    {name:"Lying Leg Raises",sets:5,startReps:10,notes:""}
+  ]},
   4:{name:"Upper Body Pull",exercises:[
     {name:"Bent Over Rows",sets:5,startWeight:35,notes:"Pull to hip"},
-    {name:"Single Arm Row",sets:4,startWeight:40,notes:"Each arm"},
-    {name:"Dumbbell Pullover",sets:4,startWeight:30,notes:"Chest/back combo"},
-    {name:"Hammer Curls",sets:4,startWeight:20,notes:"Neutral grip"},
-    {name:"Reverse Flyes",sets:3,startWeight:12,notes:"Rear delts"}]},
+    {name:"Single Arm Row",sets:5,startWeight:40,notes:"Each arm"},                   // changed from 4 → 5
+    {name:"Dumbbell Pullover",sets:5,startWeight:30,notes:"Chest/back combo"},        // changed from 4 → 5
+    {name:"Hammer Curls",sets:5,startWeight:20,notes:"Neutral grip"},                 // changed from 4 → 5
+    {name:"Reverse Flyes",sets:5,startWeight:12,notes:"Rear delts"}                   // changed from 3 → 5
+  ]},
   5:{name:"Full Body & Cardio",exercises:[
-    {name:"Dumbbell Clean & Press",sets:4,startWeight:25,notes:"Explosive"},
-    {name:"Goblet Squats",sets:4,startWeight:40,notes:"Similar to Day 2"},
+    {name:"Dumbbell Clean & Press",sets:5,startWeight:25,notes:"Explosive"},          // changed from 4 → 5
+    {name:"Goblet Squats",sets:5,startWeight:40,notes:"Similar to Day 2"},            // changed from 4 → 5
     {name:"Push-ups",sets:5,startReps:15,notes:""},
-    {name:"Dumbbell Swings",sets:3,startWeight:30,notes:"Hip drive"},
-    {name:"Treadmill Intervals",sets:1,startWeight:0,notes:"Interval session — no adjustments"}]}
+    {name:"Dumbbell Swings",sets:5,startWeight:30,notes:"Hip drive"},                // changed from 3 → 5
+    {name:"Treadmill Intervals",sets:5,startWeight:0,notes:"Interval session — no adjustments"} // changed from 1 → 5
+  ]}
 };
 
 const PREFIX='prog_manual_v12_';
@@ -325,3 +330,4 @@ document.addEventListener('click',{once:true,passive:true},()=>{requestWakeLock(
 </script>
 </body>
 </html>
+
