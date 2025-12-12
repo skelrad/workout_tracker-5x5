@@ -258,11 +258,66 @@ function renderExercises(week,day){
   PROGRAM[day].exercises.forEach((ex,idx)=>{
     const exIdx=idx+1;
     const exCard=document.createElement('div');exCard.className='exercise-card';
+    
+    // Get current weight for this exercise
+    const currentWeight = ex.weight ? DS.getValue(week,day,exIdx) : null;
+    const weightDisplay = currentWeight !== null ? `<div style="font-weight:700;color:var(--accent);font-size:1.1rem;margin-top:4px">${currentWeight} lbs</div>` : '';
+    
     let subtitleHTML=ex.reps!=="n/a"?`<div class="muted small">${ex.reps} reps${ex.amrap?" (AMRAP)":" per set"}${ex.notes? " — "+ex.notes:""}</div>`:'';
-    exCard.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:flex-start"><div><div style="font-weight:700">${ex.name}</div>${subtitleHTML}</div></div><div style="margin-top:10px" id="ex_${day}_${exIdx}"></div>`;
+    exCard.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:flex-start"><div><div style="font-weight:700">${ex.name}</div>${subtitleHTML}${weightDisplay}</div></div><div style="margin-top:10px" id="ex_${day}_${exIdx}"></div>`;
     container.appendChild(exCard);
 
     const placeholder=exCard.querySelector(`#ex_${day}_${exIdx}`);
+    
+    // Show starting weight input on Week 1 if no weight set yet
+    if(ex.weight && week === 1 && currentWeight === null){
+      const startWeightDiv = document.createElement('div');
+      startWeightDiv.style.marginBottom = '12px';
+      startWeightDiv.style.padding = '10px';
+      startWeightDiv.style.background = '#fef3c7';
+      startWeightDiv.style.borderRadius = '6px';
+      startWeightDiv.style.border = '1px solid #fbbf24';
+      startWeightDiv.innerHTML = '<div style="font-weight:700;margin-bottom:6px;color:#78350f">Set Starting Weight</div>';
+      
+      const inputRow = document.createElement('div');
+      inputRow.style.display = 'flex';
+      inputRow.style.gap = '8px';
+      inputRow.style.alignItems = 'center';
+      
+      const input = document.createElement('input');
+      input.type = 'number';
+      input.min = '0';
+      input.step = '5';
+      input.placeholder = 'Enter weight';
+      input.style.padding = '6px 8px';
+      input.style.border = '1px solid #d1d5db';
+      input.style.borderRadius = '6px';
+      input.style.width = '100px';
+      input.addEventListener('click', (ev) => ev.stopPropagation());
+      input.addEventListener('focus', (ev) => ev.stopPropagation());
+      
+      const setBtn = document.createElement('button');
+      setBtn.type = 'button';
+      setBtn.className = 'adjust-btn';
+      setBtn.textContent = 'Set Weight';
+      setBtn.style.background = '#fbbf24';
+      setBtn.style.color = '#78350f';
+      setBtn.style.borderColor = '#fbbf24';
+      setBtn.addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        const val = Number(input.value);
+        if(val > 0){
+          DS.saveValue(week, day, exIdx, val);
+          renderDaysGrid();
+        }
+      });
+      
+      inputRow.appendChild(input);
+      inputRow.appendChild(setBtn);
+      startWeightDiv.appendChild(inputRow);
+      placeholder.appendChild(startWeightDiv);
+    }
+    
     const setRow=document.createElement('div');setRow.className='set-buttons';
 
     let totalLabel = null;
