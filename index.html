@@ -177,7 +177,8 @@ footer{margin-top:18px;text-align:center;color:var(--muted);font-size:0.9rem}
       card.tabIndex=0;
       card.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center"><strong>Day ${day}</strong><span class="muted small">${def.name}</span></div>`;
       const container=document.createElement('div');container.id='dayExercises_'+day;card.appendChild(container);
-      card.addEventListener('click',()=>{card.classList.toggle('expanded');});
+      // Fix: prevent collapsing when clicking inside exercises
+      card.addEventListener('click',(e)=>{if(e.target===card || e.target===card.firstChild)card.classList.toggle('expanded');});
       dom.grid.appendChild(card);
       renderExercises(week,day);
     });
@@ -185,16 +186,7 @@ footer{margin-top:18px;text-align:center;color:var(--muted);font-size:0.9rem}
     if(allWeeksComplete()){
       const btnCard=document.createElement('div');btnCard.className='card';
       const btn=document.createElement('button');btn.className='week-btn';btn.textContent='All 12 weeks completed. Reset for Round 2?';
-      btn.addEventListener('click',()=>{
-        if(confirm('Reset all progress for Round 2? We will keep last weights.')){
-          // Preserve last weights
-          for(let w=1;w<=12;w++){for(let d in PROGRAM){PROGRAM[d].exercises.forEach((ex,idx)=>{
-            const exIdx=idx+1;const nextVal=DS.getValue(w,d,exIdx);
-            if(nextVal!==null)DS.saveValue(1,d,exIdx,nextVal); // set week1 start
-          });}}
-          DS.resetAll();renderDaysGrid();
-        }
-      });
+      btn.addEventListener('click',()=>{if(confirm('Reset all progress for Round 2? We will keep last weights.')){for(let w=1;w<=12;w++){for(let d in PROGRAM){PROGRAM[d].exercises.forEach((ex,idx)=>{const exIdx=idx+1;const nextVal=DS.getValue(w,d,exIdx);if(nextVal!==null)DS.saveValue(1,d,exIdx,nextVal);});}}DS.resetAll();renderDaysGrid();}});
       btnCard.appendChild(btn);
       dom.round2Container.appendChild(btnCard);
     }
@@ -221,21 +213,26 @@ footer{margin-top:18px;text-align:center;color:var(--muted);font-size:0.9rem}
         btn.appendChild(left);btn.appendChild(right);
         const state=DS.getProgress(week,day,exIdx,s);
         if(state==='complete')btn.classList.add('pass');else if(state==='failed')btn.classList.add('fail');
-        btn.addEventListener('click',(ev)=>{const rect=btn.getBoundingClientRect();const clickX=ev.clientX-rect.left;if(ev.detail===2){DS.removeProgress(week,day,exIdx,s);renderDaysGrid();return;}const half=rect.width/2;if(clickX<half){DS.saveProgress(week,day,exIdx,s,'complete');btn.classList.remove('fail');btn.classList.add('pass');}else{DS.saveProgress(week,day,exIdx,s,'failed');btn.classList.remove('pass');btn.classList.add('fail');}renderDaysGrid();});setRow.appendChild(btn);}
+        // Fix: stop propagation so day doesn't collapse
+        btn.addEventListener('click',(ev)=>{ev.stopPropagation(); const rect=btn.getBoundingClientRect(); const clickX=ev.clientX-rect.left;if(ev.detail===2){DS.removeProgress(week,day,exIdx,s);renderDaysGrid();return;} const half=rect.width/2;if(clickX<half){DS.saveProgress(week,day,exIdx,s,'complete');btn.classList.remove('fail');btn.classList.add('pass');}else{DS.saveProgress(week,day,exIdx,s,'failed');btn.classList.remove('pass');btn.classList.add('fail');}renderDaysGrid();});
+        setRow.appendChild(btn);
+      }
       placeholder.appendChild(setRow);
 
+      // Weight / adjustments (same as original code)
       if(ex.hasOwnProperty('startWeight')){
         const nextWeek=(week%12)+1;
         const wrap=document.createElement('div');wrap.style.marginTop='10px';wrap.innerHTML=`<div style="font-weight:700;margin-bottom:6px">Weight change for next week</div>`;
         const planned=DS.getValue(nextWeek,day,exIdx);
         const plannedText=document.createElement('div');plannedText.className='muted small';plannedText.style.marginBottom='6px';
         plannedText.textContent='Planned next-week weight: '+(planned!==null?planned+' lbs':'none');wrap.appendChild(plannedText);
-        const deltas=[-3,-2,0,2,3]; // ±2 included inline
+        const deltas=[-3,-2,0,2,3]; 
         const row=document.createElement('div');row.style.display='flex';row.style.gap='8px';row.style.flexWrap='wrap';
-        deltas.forEach(delta=>{const btn=document.createElement('button');btn.type='button';btn.className='adjust-btn';btn.textContent=(delta>0?'+'+delta:String(delta));if(planned!==null && Math.abs(planned-(displayed+delta))<0.0005)btn.classList.add('active');btn.addEventListener('click',()=>{const nextVal=displayed+delta;DS.saveValue(nextWeek,day,exIdx,nextVal);renderDaysGrid();});row.appendChild(btn);});
-        const clr=document.createElement('button');clr.type='button';clr.className='adjust-clear';clr.textContent='Clear';clr.addEventListener('click',()=>{DS.removeValue(nextWeek,day,exIdx);renderDaysGrid();});row.appendChild(clr);wrap.appendChild(row);placeholder.appendChild(wrap);
+        deltas.forEach(delta=>{const btn=document.createElement('button');btn.type='button';btn.className='adjust-btn';btn.textContent=(delta>0?'+'+delta:String(delta));if(planned!==null && Math.abs(planned-(displayed+delta))<0.0005)btn.classList.add('active');btn.addEventListener('click',(e)=>{e.stopPropagation(); const nextVal=displayed+delta;DS.saveValue(nextWeek,day,exIdx,nextVal);renderDaysGrid();});row.appendChild(btn);});
+        const clr=document.createElement('button');clr.type='button';clr.className='adjust-clear';clr.textContent='Clear';clr.addEventListener('click',(e)=>{e.stopPropagation(); DS.removeValue(nextWeek,day,exIdx);renderDaysGrid();});row.appendChild(clr);wrap.appendChild(row);placeholder.appendChild(wrap);
       }
 
+      // Reps/Time adjustments
       if(ex.hasOwnProperty('startTime') || ex.hasOwnProperty('startPerSide') || ex.hasOwnProperty('startReps')){
         const nextWeek=(week%12)+1;
         const wrap=document.createElement('div');wrap.style.marginTop='10px';
@@ -249,8 +246,8 @@ footer{margin-top:18px;text-align:center;color:var(--muted);font-size:0.9rem}
         plannedText.textContent='Planned next-week: '+(planned!==null?(ex.hasOwnProperty('startTime')?planned+' s':ex.hasOwnProperty('startPerSide')?planned+' /side':planned+' reps'):'none');
         wrap.appendChild(plannedText);
         const row=document.createElement('div');row.style.display='flex';row.style.gap='8px';row.style.flexWrap='wrap';
-        deltas.forEach(delta=>{const btn=document.createElement('button');btn.type='button';btn.className='adjust-btn';btn.textContent=(delta>0?'+'+delta:String(delta));if(planned!==null && Math.round(planned)===Math.round(displayed+delta))btn.classList.add('active');btn.addEventListener('click',()=>{DS.saveValue(nextWeek,day,exIdx,Math.round(displayed+delta));renderDaysGrid();});row.appendChild(btn);});
-        const clr=document.createElement('button');clr.type='button';clr.className='adjust-clear';clr.textContent='Clear';clr.addEventListener('click',()=>{DS.removeValue(nextWeek,day,exIdx);renderDaysGrid();});row.appendChild(clr);
+        deltas.forEach(delta=>{const btn=document.createElement('button');btn.type='button';btn.className='adjust-btn';btn.textContent=(delta>0?'+'+delta:String(delta));if(planned!==null && Math.round(planned)===Math.round(displayed+delta))btn.classList.add('active');btn.addEventListener('click',(e)=>{e.stopPropagation(); DS.saveValue(nextWeek,day,exIdx,Math.round(displayed+delta));renderDaysGrid();});row.appendChild(btn);});
+        const clr=document.createElement('button');clr.type='button';clr.className='adjust-clear';clr.textContent='Clear';clr.addEventListener('click',(e)=>{e.stopPropagation(); DS.removeValue(nextWeek,day,exIdx);renderDaysGrid();});row.appendChild(clr);
         wrap.appendChild(row);placeholder.appendChild(wrap);
       }
 
@@ -261,6 +258,22 @@ footer{margin-top:18px;text-align:center;color:var(--muted);font-size:0.9rem}
   if(!localStorage.getItem(key('week')))DS.setWeek(1);
   renderWeekSelector(DS.getWeek());
   renderDaysGrid();
+
+  // --- WAKE LOCK ---
+  let wakeLock=null;
+  async function requestWakeLock(){
+    try{
+      if('wakeLock' in navigator){
+        wakeLock=await navigator.wakeLock.request('screen');
+        document.addEventListener('visibilitychange', async ()=>{
+          if(wakeLock!==null && document.visibilityState==='visible'){
+            wakeLock=await navigator.wakeLock.request('screen');
+          }
+        });
+      }else console.log('Wake Lock API not supported');
+    }catch(err){console.error(`Could not keep screen on: ${err.message}`);}
+  }
+  requestWakeLock();
 
 })();
 </script>
