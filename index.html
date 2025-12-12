@@ -131,7 +131,7 @@ const PROGRAM={
     {name:"Treadmill Intervals",sets:1,startWeight:0,notes:"Interval session — no adjustments"}]}
 };
 
-const PREFIX='prog_manual_v9_';
+const PREFIX='prog_manual_v10_';
 function key(...parts){return PREFIX+parts.join('|');}
 const DS={
   getWeek(){return parseInt(localStorage.getItem(key('week'))||'1',10);},
@@ -186,7 +186,7 @@ function renderDaysGrid(){
   }
 }
 
-// --- Exercises rendering function, fully stopPropagation for all buttons
+// --- renderExercises function with full stopPropagation and updated weight deltas
 function renderExercises(week,day){
   const container=document.getElementById('dayExercises_'+day);
   clear(container);
@@ -220,7 +220,7 @@ function renderExercises(week,day){
     }
     placeholder.appendChild(setRow);
 
-    // --- Weight adjustments ---
+    // --- Weight adjustments with expanded deltas ±2,3,5,10 ---
     if(ex.hasOwnProperty('startWeight')){
       const nextWeek=(week%12)+1;
       const wrap=document.createElement('div');wrap.style.marginTop='10px';
@@ -229,7 +229,7 @@ function renderExercises(week,day){
       const plannedText=document.createElement('div');plannedText.className='muted small';plannedText.style.marginBottom='6px';
       plannedText.textContent='Planned next-week weight: '+(planned!==null?planned+' lbs':'none');
       wrap.appendChild(plannedText);
-      const deltas=[-3,-2,0,2,3];
+      const deltas=[-10,-5,-3,-2,0,2,3,5,10];
       const row=document.createElement('div');row.style.display='flex';row.style.gap='8px';row.style.flexWrap='wrap';
       deltas.forEach(delta=>{
         const btn=document.createElement('button');btn.type='button';btn.className='adjust-btn';btn.textContent=(delta>0?'+'+delta:String(delta));
@@ -239,8 +239,7 @@ function renderExercises(week,day){
       });
       const clr=document.createElement('button');clr.type='button';clr.className='adjust-clear';clr.textContent='Clear';
       clr.addEventListener('click',e=>{e.stopPropagation(); DS.removeValue(nextWeek,day,exIdx); renderDaysGrid();});
-      row.appendChild(clr);wrap.appendChild(row);
-      placeholder.appendChild(wrap);
+      row.appendChild(clr);wrap.appendChild(row); placeholder.appendChild(wrap);
     }
 
     // --- Time/Reps adjustments ---
