@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Progressive 5x5 — Hypertrophy + Supersets + Yoga</title>
+<title>Optimized Dumbbell + Pull-Up Program</title>
 <style>
 :root{
   --accent:#3b82f6;
@@ -33,17 +33,11 @@ p.lead{margin:0;color:var(--muted)}
 .day-card.selected{border-color:var(--accent);background:#eff6ff}
 .day-card.complete{background:#a7f3d0;border-color:var(--complete-day);}
 .day-card > div:first-child{font-weight:700;border-bottom:1px solid #d1d5db;padding-bottom:6px;margin-bottom:8px;}
-.day-card > div:last-child{
-  max-height:0;
-  overflow:hidden;
-  transition: max-height 0.35s ease;
-}
-.day-card.expanded > div:last-child{
-  max-height:2000px;
-}
-.exercise-card{padding:14px;border-radius:8px;border:1px solid #e6e6e6;margin-bottom:10px;background:#fdfdfd;box-shadow:0 1px 4px rgba(0,0,0,0.05);transition: transform 0.08s;position:relative;}
+.day-card > div:last-child{max-height:0;overflow:hidden;transition: max-height 0.35s ease;}
+.day-card.expanded > div:last-child{max-height:2000px;}
+.exercise-card{padding:14px;border-radius:8px;border:1px solid #e6e6e6;margin-bottom:10px;background:#fdfdfd;box-shadow:0 1px 4px rgba(0,0,0,0.05);transition: transform 0.08s;}
 .exercise-card:hover{transform:translateY(-2px);}
-.set-buttons{display:flex;gap:8px;flex-wrap:wrap}
+.set-buttons{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .set-btn{position:relative;padding:6px 10px;border-radius:8px;border:1px solid #d1d5db;background:#fff;cursor:pointer;min-width:68px;user-select:none;display:inline-flex;align-items:center;justify-content:center;overflow:hidden;transition: transform 0.08s;}
 .set-btn:hover{transform:scale(1.05);}
 .set-btn .half{display:inline-block;width:50%;text-align:center;padding:6px 8px;pointer-events:none}
@@ -54,13 +48,14 @@ p.lead{margin:0;color:var(--muted)}
 .adjust-btn{padding:6px 8px;border-radius:6px;border:1px solid #d1d5db;background:#fff;cursor:pointer}
 .adjust-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
 .adjust-clear{padding:6px 8px;border-radius:6px;border:1px solid #ef4444;background:#fff;color:#ef4444;cursor:pointer}
-.superset-label{position:absolute;top:-10px;left:10px;background:var(--accent);color:#fff;padding:2px 6px;border-radius:4px;font-size:.8rem}
+.amrap-input{width:60px;padding:4px 6px;margin-left:6px;border:1px solid #d1d5db;border-radius:6px;}
+.amrap-last{font-size:0.85rem;color:var(--muted);margin-left:4px;}
+.amrap-total{font-size:0.9rem;color:#111;margin-top:4px;font-weight:600;}
 .hidden{display:none}
 .muted{color:var(--muted);font-size:.95rem}
 .flex{display:flex;gap:12px;align-items:center}
 .spacer{flex:1}
 .small{font-size:.9rem}
-.alert{padding:12px;border-radius:8px;background:#dbeafe;border-left:4px solid var(--accent);margin-bottom:14px}
 footer{margin-top:18px;text-align:center;color:var(--muted);font-size:0.9rem}
 @media print{.controls,button{display:none}}
 @media (max-width:500px){
@@ -69,14 +64,15 @@ footer{margin-top:18px;text-align:center;color:var(--muted);font-size:0.9rem}
   .controls{flex-direction:column;gap:8px;}
   .week-btn{padding:6px 10px;font-size:0.9rem;}
   .adjust-btn,.adjust-clear,.set-btn{padding:4px 6px;font-size:0.85rem;}
+  .amrap-input{width:50px;font-size:0.85rem;}
 }
 </style>
 </head>
 <body>
 <div class="container">
   <div class="card">
-    <h1>Progressive 5x5 — Hypertrophy + Supersets + Yoga</h1>
-    <p class="lead">Track sets, weights, and reps with supersets and yoga/mobility included.</p>
+    <h1>Optimized Dumbbell + Pull-Up Program</h1>
+    <p class="lead">Expert-recommended sets/reps, AMRAP tracking with last week reference, live cumulative total, weight adjustments, yoga/cardio day.</p>
     <div id="cycleInfo" class="muted small" style="margin-top:10px"></div>
   </div>
 
@@ -97,45 +93,63 @@ footer{margin-top:18px;text-align:center;color:var(--muted);font-size:0.9rem}
 </div>
 
 <script>
-(function(){
+(async function(){
 'use strict';
 
+// ===== WAKE LOCK =====
+let wakeLock = null;
+async function requestWakeLock() {
+  if('wakeLock' in navigator){
+    try{wakeLock = await navigator.wakeLock.request('screen');}
+    catch(e){console.warn('Wake lock not available:',e);}
+  }
+}
+document.addEventListener('click', requestWakeLock, {once:true});
+document.addEventListener('touchstart', requestWakeLock, {once:true});
+
+// ===== PROGRAM DATA =====
 const PROGRAM = {
   1:{name:"Upper Body Push",exercises:[
-    {name:"Incline Dumbbell Press",sets:5,startWeight:25,notes:"Focus on upper chest"},
-    {name:"Standing Overhead Press",sets:5,startWeight:20,notes:"Strict form"},
-    {name:"Dumbbell Floor Press",sets:5,startWeight:30,notes:"Protect shoulders"},
-    {name:"Lateral Raises",sets:5,startWeight:10,notes:"Slight bend in elbow"},
-    {name:"Overhead Tricep Extension",sets:5,startWeight:20,notes:"Single DB, both arms"}
-  ],supersets:[[0,3],[1,4]]},
+    {name:"Incline Dumbbell Press",sets:4,reps:"8–12",weight:true,notes:"Upper chest"},
+    {name:"Flat Dumbbell Press",sets:4,reps:"8–12",weight:true,notes:"Chest"},
+    {name:"Standing Overhead Press",sets:4,reps:"8–10",weight:true,notes:"Shoulders"},
+    {name:"Lateral Raises",sets:3,reps:"12–15",weight:true,notes:"Rear delts"},
+    {name:"Overhead Tricep Extension",sets:3,reps:"12–15",weight:true,notes:"Triceps"},
+    {name:"Reverse Fly / Face Pull",sets:3,reps:"12–15",weight:true,notes:"Rear delts / shoulder health"}
+  ]},
   2:{name:"Lower Body",exercises:[
-    {name:"Goblet Squats",sets:5,startWeight:40,notes:"Hold one DB at chest"},
-    {name:"Romanian Deadlifts",sets:5,startWeight:30,notes:"Hinge at hips"},
-    {name:"Bulgarian Split Squats",sets:5,startWeight:20,notes:"Each leg"},
-    {name:"Dumbbell Lunges",sets:5,startWeight:20,notes:"Each leg, walking"},
-    {name:"Calf Raises",sets:5,startWeight:30,notes:"On step, hold DBs"}
-  ],supersets:[[0,1],[2,3]]},
+    {name:"Goblet Squats",sets:4,reps:"8–12",weight:true},
+    {name:"Romanian Deadlifts",sets:4,reps:"8–10",weight:true},
+    {name:"Bulgarian Split Squats",sets:3,reps:"8–12",weight:true},
+    {name:"Dumbbell Lunges",sets:3,reps:"8–12",weight:true},
+    {name:"Glute Bridges",sets:3,reps:"12–15",weight:true},
+    {name:"Calf Raises",sets:3,reps:"12–15",weight:true}
+  ]},
   3:{name:"Upper Body Pull",exercises:[
-    {name:"Bent Over Rows",sets:5,startWeight:35,notes:"Pull to hip"},
-    {name:"Single Arm Row",sets:5,startWeight:40,notes:"Each arm"},
-    {name:"Dumbbell Pullover",sets:5,startWeight:30,notes:"Chest/back combo"},
-    {name:"Hammer Curls",sets:5,startWeight:20,notes:"Neutral grip"},
-    {name:"Reverse Flyes",sets:5,startWeight:12,notes:"Rear delts"}
-  ],supersets:[[0,4],[1,3]]},
-  4:{name:"Full Body + Cardio",exercises:[
-    {name:"Dumbbell Clean & Press",sets:5,startWeight:25,notes:"Explosive"},
-    {name:"Goblet Squats",sets:5,startWeight:40,notes:"Similar to Day 2"},
-    {name:"Push-ups",sets:5,startReps:15,notes:""},
-    {name:"Dumbbell Swings",sets:5,startWeight:30,notes:"Hip drive"},
-    {name:"Treadmill Intervals",sets:1,startWeight:0,notes:"Interval session — no adjustments"}
-  ],supersets:[[0,3],[1,2]]},
-  5:{name:"Yoga / Mobility",exercises:[
-    {name:"Yoga Flow Session",sets:1,startTime:30,notes:"Focus on flexibility and breathing"}
-  ],supersets:[]}
+    {name:"Pull-Ups",sets:4,reps:"AMRAP",amrap:true},
+    {name:"Bent Over Rows",sets:4,reps:"8–12",weight:true},
+    {name:"Single Arm Row",sets:4,reps:"8–12",weight:true},
+    {name:"Hammer Curls",sets:3,reps:"10–12",weight:true},
+    {name:"Reverse Flys",sets:3,reps:"12–15",weight:true}
+  ]},
+  4:{name:"Full Body & Conditioning",exercises:[
+    {name:"Dumbbell Clean & Press",sets:3,reps:"8–10",weight:true},
+    {name:"Goblet Squats",sets:4,reps:"10–12",weight:true},
+    {name:"Push-Ups",sets:3,reps:"AMRAP",amrap:true},
+    {name:"Dumbbell Swings",sets:3,reps:"12–15",weight:true},
+    {name:"Conditioning Intervals",sets:1,reps:"n/a"}
+  ]},
+  5:{name:"Yoga/Cardio",exercises:[
+    {name:"Yoga / Mobility / Light Cardio",sets:1,reps:"n/a"}
+  ]},
+  6:{name:"Dumbbell Cardio / Low-Impact Conditioning",exercises:[
+    {name:"Dumbbell Cardio Circuit",sets:1,reps:"n/a"}
+  ]}
 };
 
-const PREFIX='prog_manual_v13_';
+const PREFIX='prog_opt_amrap_v3_';
 function key(...parts){return PREFIX+parts.join('|');}
+
 const DS={
   getWeek(){return parseInt(localStorage.getItem(key('week'))||'1',10);},
   setWeek(w){localStorage.setItem(key('week'),String(w));},
@@ -145,20 +159,19 @@ const DS={
   saveValue(w,d,e,v){localStorage.setItem(key('v',w,d,e),String(v));},
   getValue(w,d,e){const v=localStorage.getItem(key('v',w,d,e));return v!==null?Number(v):null;},
   removeValue(w,d,e){localStorage.removeItem(key('v',w,d,e));},
-  resetAll(){for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.startsWith(PREFIX))localStorage.removeItem(k);}}
+  resetAll(){for(let i=localStorage.length-1;i>=0;i--){const k=localStorage.key(i);if(k&&k.startsWith(PREFIX))localStorage.removeItem(k);}}
 };
 
-// ===== HELPER FUNCTIONS =====
+const dom={
+  cycleInfo:document.getElementById('cycleInfo'),
+  weekSelector:document.getElementById('weekSelector'),
+  grid:document.getElementById('workoutGrid'),
+  resetBtn:document.getElementById('resetBtn'),
+  round2Container:document.getElementById('round2Container')
+};
+
+// Helper functions
 function clear(el){while(el.firstChild)el.removeChild(el.firstChild);}
-function getDisplayedValue(w,d,eIdx,ex){
-  const v=DS.getValue(w,d,eIdx);
-  if(v!==null)return v;
-  if(ex.hasOwnProperty('startWeight'))return ex.startWeight;
-  if(ex.hasOwnProperty('startTime'))return ex.startTime;
-  if(ex.hasOwnProperty('startPerSide'))return ex.startPerSide;
-  if(ex.hasOwnProperty('startReps'))return ex.startReps||10;
-  return 0;
-}
 function allSetsComplete(w,d){
   const exs=PROGRAM[d].exercises;
   for(let i=0;i<exs.length;i++){
@@ -177,22 +190,11 @@ function allWeeksComplete(){
   return true;
 }
 
-// ===== RENDER =====
-const dom={
-  cycleInfo:document.getElementById('cycleInfo'),
-  weekSelector:document.getElementById('weekSelector'),
-  grid:document.getElementById('workoutGrid'),
-  resetBtn:document.getElementById('resetBtn'),
-  round2Container:document.getElementById('round2Container')
-};
-
+// Render week selector
 function renderWeekSelector(currentWeek){
   clear(dom.weekSelector);
   for(let w=1;w<=12;w++){
-    const btn=document.createElement('button');
-    btn.type='button';
-    btn.className='week-btn';
-    btn.textContent='Week '+w;
+    const btn=document.createElement('button');btn.type='button';btn.className='week-btn';btn.textContent='Week '+w;
     if(w===currentWeek)btn.classList.add('active');
     if(w%4===0)btn.classList.add('deload');
     btn.addEventListener('click',()=>{DS.setWeek(w);renderDaysGrid();});
@@ -200,12 +202,12 @@ function renderWeekSelector(currentWeek){
   }
 }
 
+// Render days
 function renderDaysGrid(){
   const week=DS.getWeek();
   dom.cycleInfo.textContent='Week '+week;
   clear(dom.grid);
   dom.round2Container.innerHTML='';
-
   const days=Object.keys(PROGRAM).map(k=>parseInt(k,10)).sort((a,b)=>a-b);
   days.forEach(day=>{
     const def=PROGRAM[day];
@@ -224,89 +226,116 @@ function renderDaysGrid(){
     const btn=document.createElement('button');btn.className='week-btn';btn.textContent='All 12 weeks completed. Reset for Round 2?';
     btn.addEventListener('click',()=>{
       if(confirm('Reset all progress for Round 2? We will keep last weights.')){
-        for(let w=1;w<=12;w++){for(let d in PROGRAM){PROGRAM[d].exercises.forEach((ex,idx)=>{const exIdx=idx+1;const nextVal=DS.getValue(w,d,exIdx);if(nextVal!==null)DS.saveValue(1,d,exIdx,nextVal);});}}
+        for(let w=1;w<=12;w++){for(let d in PROGRAM){PROGRAM[d].exercises.forEach((ex,idx)=>{
+          const exIdx=idx+1;const nextVal=DS.getValue(w,d,exIdx);
+          if(nextVal!==null)DS.saveValue(1,d,exIdx,nextVal);
+        });}}
         DS.resetAll();renderDaysGrid();
       }
     });
-    btnCard.appendChild(btn);
-    dom.round2Container.appendChild(btnCard);
+    btnCard.appendChild(btn);dom.round2Container.appendChild(btnCard);
   }
 }
 
+// Render exercises with AMRAP cumulative tracking
 function renderExercises(week,day){
   const container=document.getElementById('dayExercises_'+day);
   clear(container);
   PROGRAM[day].exercises.forEach((ex,idx)=>{
     const exIdx=idx+1;
     const exCard=document.createElement('div');exCard.className='exercise-card';
-    const displayed=getDisplayedValue(week,day,exIdx,ex);
-
-    let subtitleHTML='';
-    if(ex.hasOwnProperty('startTime')){subtitleHTML=`<div class="muted small">Hold: ${displayed} s</div>`;}
-    else if(ex.hasOwnProperty('startPerSide')){subtitleHTML=`<div class="muted small">${ex.notes||''} — ${displayed}/side</div>`;}
-    else{subtitleHTML=`<div class="muted small">${ex.notes||''} — ${displayed} reps</div>`;}
-    exCard.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:flex-start"><div><div style="font-weight:700">${ex.name}</div>${subtitleHTML}</div><div style="text-align:right"><div style="font-weight:700">${displayed}${ex.hasOwnProperty('startTime')?' s':' lbs'}</div></div></div><div style="margin-top:10px" id="ex_${day}_${exIdx}"></div>`;
+    let subtitleHTML=ex.reps!=="n/a"?`<div class="muted small">${ex.reps} reps${ex.amrap?" (AMRAP)":" per set"}${ex.notes? " — "+ex.notes:""}</div>`:'';
+    exCard.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:flex-start"><div><div style="font-weight:700">${ex.name}</div>${subtitleHTML}</div></div><div style="margin-top:10px" id="ex_${day}_${exIdx}"></div>`;
     container.appendChild(exCard);
-    const placeholder=exCard.querySelector(`#ex_${day}_${exIdx}`);
 
-    // Sets
+    const placeholder=exCard.querySelector(`#ex_${day}_${exIdx}`);
     const setRow=document.createElement('div');setRow.className='set-buttons';
+
+    let totalLabel = null;
+    let amrapTotals = [];
+
     for(let s=1;s<=ex.sets;s++){
       const btn=document.createElement('button');btn.type='button';btn.className='set-btn';
       const left=document.createElement('span');left.className='half left';left.textContent='✓';
       const right=document.createElement('span');right.className='half right';right.textContent='✗';
       btn.appendChild(left);btn.appendChild(right);
+
       const state=DS.getProgress(week,day,exIdx,s);
       if(state==='complete')btn.classList.add('pass');else if(state==='failed')btn.classList.add('fail');
+
       btn.addEventListener('click',(ev)=>{
-        const half=btn.offsetWidth/2;
-        const clickX=ev.clientX-btn.getBoundingClientRect().left;
-        if(clickX<half){DS.saveProgress(week,day,exIdx,s,'complete');btn.classList.remove('fail');btn.classList.add('pass');}
-        else{DS.saveProgress(week,day,exIdx,s,'failed');btn.classList.remove('pass');btn.classList.add('fail');}
+        ev.stopPropagation();
+        if(ex.amrap){
+          DS.saveProgress(week,day,exIdx,s,'complete');
+        } else {
+          const rect=btn.getBoundingClientRect();const clickX=ev.clientX-rect.left;const half=rect.width/2;
+          if(clickX<half){DS.saveProgress(week,day,exIdx,s,'complete');btn.classList.remove('fail');btn.classList.add('pass');} 
+          else {DS.saveProgress(week,day,exIdx,s,'failed');btn.classList.remove('pass');btn.classList.add('fail');}
+        }
         renderDaysGrid();
       });
+
       setRow.appendChild(btn);
+
+      if(ex.amrap){
+        const input=document.createElement('input');
+        input.type='number';input.min='0';input.className='amrap-input';
+        const lastWeek=week>1?DS.getValue(week-1,day,exIdx+s):null;
+        const valThisWeek=DS.getValue(week,day,exIdx+s);
+        input.value=valThisWeek||'';
+        input.addEventListener('input',()=>{
+          DS.saveValue(week,day,exIdx+s,Number(input.value));
+          amrapTotals[s-1] = Number(input.value)||0;
+          if(totalLabel) totalLabel.textContent = 'Total this day: '+amrapTotals.reduce((a,b)=>a+b,0)+' reps';
+        });
+        setRow.appendChild(input);
+
+        if(lastWeek!==null){
+          const lastSpan=document.createElement('span');lastSpan.className='amrap-last';
+          lastSpan.textContent=`(last: ${lastWeek})`;
+          setRow.appendChild(lastSpan);
+        }
+
+        amrapTotals[s-1] = valThisWeek||0;
+        if(!totalLabel){
+          totalLabel = document.createElement('div');totalLabel.className='amrap-total';
+          totalLabel.textContent = 'Total this day: '+amrapTotals.reduce((a,b)=>a+b,0)+' reps';
+          placeholder.appendChild(totalLabel);
+        }
+      }
     }
     placeholder.appendChild(setRow);
 
-    // Next-week adjustments
-    const nextWeek=(week%12)+1;
-    if(ex.hasOwnProperty('startWeight') || ex.hasOwnProperty('startTime') || ex.hasOwnProperty('startPerSide') || ex.hasOwnProperty('startReps')){
+    // Weight adjustments if applicable
+    if(ex.weight){
+      const nextWeek=(week%12)+1;
       const wrap=document.createElement('div');wrap.style.marginTop='10px';
-      const deltas=[-10,-5,-3,-2,0,2,3,5,10];
-      const title='Next Week Adjustment';
-      wrap.innerHTML=`<div style="font-weight:700;margin-bottom:6px">${title}</div>`;
+      wrap.innerHTML=`<div style="font-weight:700;margin-bottom:6px">Next Week Adjustment</div>`;
       const planned=DS.getValue(nextWeek,day,exIdx);
       const plannedText=document.createElement('div');plannedText.className='muted small';plannedText.style.marginBottom='6px';
-      plannedText.textContent='Planned next-week: '+(planned!==null?(ex.hasOwnProperty('startTime')?planned+' s':ex.hasOwnProperty('startReps')?planned+' reps':planned+' lbs'):'none');
-      wrap.appendChild(plannedText);
+      plannedText.textContent='Planned next-week: '+(planned!==null?planned+' lbs':'none');wrap.appendChild(plannedText);
+      const deltas=[-10,-5,-3,-2,0,2,3,5,10];
       const row=document.createElement('div');row.style.display='flex';row.style.gap='8px';row.style.flexWrap='wrap';
       deltas.forEach(delta=>{
-        const btn=document.createElement('button');btn.type='button';btn.className='adjust-btn';btn.textContent=(delta>0?'+'+delta:delta);
-        if(planned!==null && Math.round(planned)===Math.round(displayed+delta))btn.classList.add('active');
-        btn.addEventListener('click',()=>{DS.saveValue(nextWeek,day,exIdx,Math.round(displayed+delta)); renderDaysGrid();});
+        const btn=document.createElement('button');btn.type='button';btn.className='adjust-btn';
+        btn.textContent=(delta>0? "+"+delta : String(delta));
+        if(planned!==null && Math.round(planned)===Math.round((DS.getValue(week,day,exIdx)||0)+delta))btn.classList.add('active');
+        btn.addEventListener('click',()=>{DS.saveValue(nextWeek,day,exIdx,Math.round((DS.getValue(week,day,exIdx)||0)+delta));renderDaysGrid();});
         row.appendChild(btn);
       });
       const clr=document.createElement('button');clr.type='button';clr.className='adjust-clear';clr.textContent='Clear';
-      clr.addEventListener('click',()=>{DS.removeValue(nextWeek,day,exIdx); renderDaysGrid();});
-      row.appendChild(clr);
-      wrap.appendChild(row);
-      placeholder.appendChild(wrap);
+      clr.addEventListener('click',()=>{DS.removeValue(nextWeek,day,exIdx);renderDaysGrid();});
+      row.appendChild(clr);wrap.appendChild(row);placeholder.appendChild(wrap);
     }
   });
 }
 
-// ===== EVENTS =====
-dom.resetBtn.addEventListener('click',()=>{
-  if(confirm('Are you sure you want to reset all progress?')){
-    DS.resetAll();renderDaysGrid();
-  }
-});
-
-// ===== INIT =====
+// ===== Reset Button =====
+dom.resetBtn.addEventListener('click',()=>{if(confirm('Reset all saved program data? This cannot be undone.')){DS.resetAll();renderDaysGrid();}});
 if(!localStorage.getItem(key('week')))DS.setWeek(1);
 renderWeekSelector(DS.getWeek());
 renderDaysGrid();
+
 })();
 </script>
 </body>
