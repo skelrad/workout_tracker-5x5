@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Progressive 5x5 — Manual-only Progression</title>
+<title>Progressive 5x5 — Hypertrophy + Supersets + Yoga</title>
 <style>
 :root{
   --accent:#3b82f6;
@@ -22,7 +22,7 @@ h1{font-size:1.4rem;margin:0 0 6px}
 p.lead{margin:0;color:var(--muted)}
 .controls{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
 .week-selector{display:flex;gap:8px;flex-wrap:wrap}
-.week-btn{padding:10px 14px;border-radius:8px;border:2px solid #ddd;background:#fff;font-weight:600;cursor:pointer}
+.week-btn{padding:8px 12px;border-radius:8px;border:2px solid #ddd;background:#fff;font-weight:600;cursor:pointer}
 .week-btn:hover{background:#f3f4f6}
 .week-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
 .week-btn.deload{background:#fef3c7;border-color:#fbbf24}
@@ -41,19 +41,20 @@ p.lead{margin:0;color:var(--muted)}
 .day-card.expanded > div:last-child{
   max-height:2000px;
 }
-.exercise-card{padding:14px;border-radius:8px;border:1px solid #e6e6e6;margin-bottom:10px;background:#fdfdfd;box-shadow:0 1px 4px rgba(0,0,0,0.05);transition: transform 0.08s;}
+.exercise-card{padding:14px;border-radius:8px;border:1px solid #e6e6e6;margin-bottom:10px;background:#fdfdfd;box-shadow:0 1px 4px rgba(0,0,0,0.05);transition: transform 0.08s;position:relative;}
 .exercise-card:hover{transform:translateY(-2px);}
 .set-buttons{display:flex;gap:8px;flex-wrap:wrap}
-.set-btn{position:relative;padding:10px 12px;border-radius:8px;border:1px solid #d1d5db;background:#fff;cursor:pointer;min-width:68px;user-select:none;display:inline-flex;align-items:center;justify-content:center;overflow:hidden;transition: transform 0.08s;font-size:1rem;}
+.set-btn{position:relative;padding:6px 10px;border-radius:8px;border:1px solid #d1d5db;background:#fff;cursor:pointer;min-width:68px;user-select:none;display:inline-flex;align-items:center;justify-content:center;overflow:hidden;transition: transform 0.08s;}
 .set-btn:hover{transform:scale(1.05);}
 .set-btn .half{display:inline-block;width:50%;text-align:center;padding:6px 8px;pointer-events:none}
 .set-btn .half.left{background:var(--split-left)}
 .set-btn .half.right{background:var(--split-right)}
 .set-btn.pass{background:var(--success);border-color:var(--success);color:#fff}
 .set-btn.fail{background:var(--danger);border-color:var(--danger);color:#fff}
-.adjust-btn{padding:8px 10px;border-radius:6px;border:1px solid #d1d5db;background:#fff;cursor:pointer;font-size:0.95rem;}
+.adjust-btn{padding:6px 8px;border-radius:6px;border:1px solid #d1d5db;background:#fff;cursor:pointer}
 .adjust-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
-.adjust-clear{padding:8px 10px;border-radius:6px;border:1px solid #ef4444;background:#fff;color:#ef4444;cursor:pointer;font-size:0.95rem;}
+.adjust-clear{padding:6px 8px;border-radius:6px;border:1px solid #ef4444;background:#fff;color:#ef4444;cursor:pointer}
+.superset-label{position:absolute;top:-10px;left:10px;background:var(--accent);color:#fff;padding:2px 6px;border-radius:4px;font-size:.8rem}
 .hidden{display:none}
 .muted{color:var(--muted);font-size:.95rem}
 .flex{display:flex;gap:12px;align-items:center}
@@ -66,16 +67,16 @@ footer{margin-top:18px;text-align:center;color:var(--muted);font-size:0.9rem}
   .grid{grid-template-columns:1fr;}
   .exercise-card{padding:12px;}
   .controls{flex-direction:column;gap:8px;}
-  .week-btn{padding:8px 10px;font-size:0.95rem;}
-  .adjust-btn,.adjust-clear,.set-btn{padding:6px 8px;font-size:0.9rem;}
+  .week-btn{padding:6px 10px;font-size:0.9rem;}
+  .adjust-btn,.adjust-clear,.set-btn{padding:4px 6px;font-size:0.85rem;}
 }
 </style>
 </head>
 <body>
 <div class="container">
   <div class="card">
-    <h1>Progressive 5x5 — Manual-only Progression</h1>
-    <p class="lead">All progressions are manual. Use the "Change for Next Week" controls under each exercise.</p>
+    <h1>Progressive 5x5 — Hypertrophy + Supersets + Yoga</h1>
+    <p class="lead">Track sets, weights, and reps with supersets and yoga/mobility included.</p>
     <div id="cycleInfo" class="muted small" style="margin-top:10px"></div>
   </div>
 
@@ -99,45 +100,41 @@ footer{margin-top:18px;text-align:center;color:var(--muted);font-size:0.9rem}
 (function(){
 'use strict';
 
-const PROGRAM={
+const PROGRAM = {
   1:{name:"Upper Body Push",exercises:[
     {name:"Incline Dumbbell Press",sets:5,startWeight:25,notes:"Focus on upper chest"},
     {name:"Standing Overhead Press",sets:5,startWeight:20,notes:"Strict form"},
     {name:"Dumbbell Floor Press",sets:5,startWeight:30,notes:"Protect shoulders"},
-    {name:"Lateral Raises",sets:5,startWeight:10,notes:"Slight bend in elbow"},        // changed from 3 → 5
-    {name:"Overhead Tricep Extension",sets:5,startWeight:20,notes:"Single DB, both arms"} // changed from 3 → 5
-  ]},
+    {name:"Lateral Raises",sets:5,startWeight:10,notes:"Slight bend in elbow"},
+    {name:"Overhead Tricep Extension",sets:5,startWeight:20,notes:"Single DB, both arms"}
+  ],supersets:[[0,3],[1,4]]},
   2:{name:"Lower Body",exercises:[
     {name:"Goblet Squats",sets:5,startWeight:40,notes:"Hold one DB at chest"},
     {name:"Romanian Deadlifts",sets:5,startWeight:30,notes:"Hinge at hips"},
-    {name:"Bulgarian Split Squats",sets:5,startWeight:20,notes:"Each leg"},             // changed from 4 → 5
-    {name:"Dumbbell Lunges",sets:5,startWeight:20,notes:"Each leg, walking"},          // changed from 3 → 5
-    {name:"Calf Raises",sets:5,startWeight:30,notes:"On step, hold DBs"}               // changed from 3 → 5
-  ]},
-  3:{name:"Cardio & Core",exercises:[
-    {name:"Treadmill Intervals",sets:5,startWeight:0,notes:"Interval session — no adjustments"}, // changed from 1 → 5
-    {name:"Plank",sets:5,startTime:30,notes:"Hold:"},
-    {name:"Russian Twists",sets:5,startPerSide:10,notes:"10/side"},
-    {name:"Dumbbell Side Bends",sets:5,startWeight:25,notes:"10 Each Side"},          // changed from 3 → 5
-    {name:"Lying Leg Raises",sets:5,startReps:10,notes:""}
-  ]},
-  4:{name:"Upper Body Pull",exercises:[
+    {name:"Bulgarian Split Squats",sets:5,startWeight:20,notes:"Each leg"},
+    {name:"Dumbbell Lunges",sets:5,startWeight:20,notes:"Each leg, walking"},
+    {name:"Calf Raises",sets:5,startWeight:30,notes:"On step, hold DBs"}
+  ],supersets:[[0,1],[2,3]]},
+  3:{name:"Upper Body Pull",exercises:[
     {name:"Bent Over Rows",sets:5,startWeight:35,notes:"Pull to hip"},
-    {name:"Single Arm Row",sets:5,startWeight:40,notes:"Each arm"},                   // changed from 4 → 5
-    {name:"Dumbbell Pullover",sets:5,startWeight:30,notes:"Chest/back combo"},        // changed from 4 → 5
-    {name:"Hammer Curls",sets:5,startWeight:20,notes:"Neutral grip"},                 // changed from 4 → 5
-    {name:"Reverse Flyes",sets:5,startWeight:12,notes:"Rear delts"}                   // changed from 3 → 5
-  ]},
-  5:{name:"Full Body & Cardio",exercises:[
-    {name:"Dumbbell Clean & Press",sets:5,startWeight:25,notes:"Explosive"},          // changed from 4 → 5
-    {name:"Goblet Squats",sets:5,startWeight:40,notes:"Similar to Day 2"},            // changed from 4 → 5
+    {name:"Single Arm Row",sets:5,startWeight:40,notes:"Each arm"},
+    {name:"Dumbbell Pullover",sets:5,startWeight:30,notes:"Chest/back combo"},
+    {name:"Hammer Curls",sets:5,startWeight:20,notes:"Neutral grip"},
+    {name:"Reverse Flyes",sets:5,startWeight:12,notes:"Rear delts"}
+  ],supersets:[[0,4],[1,3]]},
+  4:{name:"Full Body + Cardio",exercises:[
+    {name:"Dumbbell Clean & Press",sets:5,startWeight:25,notes:"Explosive"},
+    {name:"Goblet Squats",sets:5,startWeight:40,notes:"Similar to Day 2"},
     {name:"Push-ups",sets:5,startReps:15,notes:""},
-    {name:"Dumbbell Swings",sets:5,startWeight:30,notes:"Hip drive"},                // changed from 3 → 5
-    {name:"Treadmill Intervals",sets:5,startWeight:0,notes:"Interval session — no adjustments"} // changed from 1 → 5
-  ]}
+    {name:"Dumbbell Swings",sets:5,startWeight:30,notes:"Hip drive"},
+    {name:"Treadmill Intervals",sets:1,startWeight:0,notes:"Interval session — no adjustments"}
+  ],supersets:[[0,3],[1,2]]},
+  5:{name:"Yoga / Mobility",exercises:[
+    {name:"Yoga Flow Session",sets:1,startTime:30,notes:"Focus on flexibility and breathing"}
+  ],supersets:[]}
 };
 
-const PREFIX='prog_manual_v12_';
+const PREFIX='prog_manual_v13_';
 function key(...parts){return PREFIX+parts.join('|');}
 const DS={
   getWeek(){return parseInt(localStorage.getItem(key('week'))||'1',10);},
@@ -151,8 +148,36 @@ const DS={
   resetAll(){for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.startsWith(PREFIX))localStorage.removeItem(k);}}
 };
 
-const expandedDays={};
+// ===== HELPER FUNCTIONS =====
+function clear(el){while(el.firstChild)el.removeChild(el.firstChild);}
+function getDisplayedValue(w,d,eIdx,ex){
+  const v=DS.getValue(w,d,eIdx);
+  if(v!==null)return v;
+  if(ex.hasOwnProperty('startWeight'))return ex.startWeight;
+  if(ex.hasOwnProperty('startTime'))return ex.startTime;
+  if(ex.hasOwnProperty('startPerSide'))return ex.startPerSide;
+  if(ex.hasOwnProperty('startReps'))return ex.startReps||10;
+  return 0;
+}
+function allSetsComplete(w,d){
+  const exs=PROGRAM[d].exercises;
+  for(let i=0;i<exs.length;i++){
+    for(let s=1;s<=exs[i].sets;s++){
+      if(!DS.getProgress(w,d,i+1,s))return false;
+    }
+  }
+  return true;
+}
+function allWeeksComplete(){
+  for(let w=1;w<=12;w++){
+    for(let d in PROGRAM){
+      if(!allSetsComplete(w,d))return false;
+    }
+  }
+  return true;
+}
 
+// ===== RENDER =====
 const dom={
   cycleInfo:document.getElementById('cycleInfo'),
   weekSelector:document.getElementById('weekSelector'),
@@ -161,15 +186,13 @@ const dom={
   round2Container:document.getElementById('round2Container')
 };
 
-function clear(el){while(el.firstChild)el.removeChild(el.firstChild);}
-function getDisplayedValue(w,d,eIdx,ex){const v=DS.getValue(w,d,eIdx);if(v!==null)return v;if(ex.hasOwnProperty('startWeight'))return ex.startWeight;if(ex.hasOwnProperty('startTime'))return ex.startTime;if(ex.hasOwnProperty('startPerSide'))return ex.startPerSide;if(ex.hasOwnProperty('startReps'))return ex.startReps;return 0;}
-function allSetsComplete(w,d){const exs=PROGRAM[d].exercises;for(let i=0;i<exs.length;i++){for(let s=1;s<=exs[i].sets;s++){if(!DS.getProgress(w,d,i+1,s))return false;}}return true;}
-function allWeeksComplete(){for(let w=1;w<=12;w++){for(let d in PROGRAM){if(!allSetsComplete(w,d))return false;}}return true;}
-
 function renderWeekSelector(currentWeek){
   clear(dom.weekSelector);
   for(let w=1;w<=12;w++){
-    const btn=document.createElement('button');btn.type='button';btn.className='week-btn';btn.textContent='Week '+w;
+    const btn=document.createElement('button');
+    btn.type='button';
+    btn.className='week-btn';
+    btn.textContent='Week '+w;
     if(w===currentWeek)btn.classList.add('active');
     if(w%4===0)btn.classList.add('deload');
     btn.addEventListener('click',()=>{DS.setWeek(w);renderDaysGrid();});
@@ -177,31 +200,21 @@ function renderWeekSelector(currentWeek){
   }
 }
 
-// --- renderDaysGrid with auto-collapse completed days ---
 function renderDaysGrid(){
   const week=DS.getWeek();
   dom.cycleInfo.textContent='Week '+week;
   clear(dom.grid);
   dom.round2Container.innerHTML='';
+
   const days=Object.keys(PROGRAM).map(k=>parseInt(k,10)).sort((a,b)=>a-b);
   days.forEach(day=>{
     const def=PROGRAM[day];
     const card=document.createElement('div');card.className='card day-card';
-    if(allSetsComplete(week,day)) card.classList.add('complete');
+    if(allSetsComplete(week,day))card.classList.add('complete');
     card.tabIndex=0;
     card.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center"><strong>Day ${day}</strong><span class="muted small">${def.name}</span></div>`;
     const container=document.createElement('div');container.id='dayExercises_'+day;card.appendChild(container);
-
-    // Auto-collapse completed day
-    if(allSetsComplete(week,day)) expandedDays[day]=false;
-
-    if(expandedDays[day]) card.classList.add('expanded');
-    card.addEventListener('click', e => {
-      if(e.target===card || e.target===card.firstChild){
-        expandedDays[day] = !expandedDays[day];
-        renderDaysGrid();
-      }
-    });
+    card.addEventListener('click',()=>{card.classList.toggle('expanded');});
     dom.grid.appendChild(card);
     renderExercises(week,day);
   });
@@ -209,13 +222,17 @@ function renderDaysGrid(){
   if(allWeeksComplete()){
     const btnCard=document.createElement('div');btnCard.className='card';
     const btn=document.createElement('button');btn.className='week-btn';btn.textContent='All 12 weeks completed. Reset for Round 2?';
-    btn.addEventListener('click',()=>{if(confirm('Reset all progress for Round 2? We will keep last weights.')){for(let w=1;w<=12;w++){for(let d in PROGRAM){PROGRAM[d].exercises.forEach((ex,idx)=>{const exIdx=idx+1;const nextVal=DS.getValue(w,d,exIdx);if(nextVal!==null)DS.saveValue(1,d,exIdx,nextVal);});}}DS.resetAll();renderDaysGrid();}});
+    btn.addEventListener('click',()=>{
+      if(confirm('Reset all progress for Round 2? We will keep last weights.')){
+        for(let w=1;w<=12;w++){for(let d in PROGRAM){PROGRAM[d].exercises.forEach((ex,idx)=>{const exIdx=idx+1;const nextVal=DS.getValue(w,d,exIdx);if(nextVal!==null)DS.saveValue(1,d,exIdx,nextVal);});}}
+        DS.resetAll();renderDaysGrid();
+      }
+    });
     btnCard.appendChild(btn);
     dom.round2Container.appendChild(btnCard);
   }
 }
 
-// --- renderExercises function (same as previous version, including ±2,3,5,10 weights, reps/time adjustments, set buttons, only refresh the day) ---
 function renderExercises(week,day){
   const container=document.getElementById('dayExercises_'+day);
   clear(container);
@@ -223,19 +240,16 @@ function renderExercises(week,day){
     const exIdx=idx+1;
     const exCard=document.createElement('div');exCard.className='exercise-card';
     const displayed=getDisplayedValue(week,day,exIdx,ex);
-    let subtitleHTML='';
-    if(ex.hasOwnProperty('startTime')) subtitleHTML=`<div class="muted small">Hold: ${displayed} s</div>`;
-    else if(ex.hasOwnProperty('startPerSide')) subtitleHTML=`<div class="muted small">${ex.notes||''} — ${displayed}/side</div>`;
-    else if(ex.hasOwnProperty('startReps') && !(day===5 && ex.name.toLowerCase().includes('push-ups'))) subtitleHTML=`<div class="muted small">${displayed} reps per set</div>`;
-    else subtitleHTML=`<div class="muted small">${ex.notes||''}</div>`;
-    exCard.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:flex-start">
-      <div><div style="font-weight:700">${ex.name}</div>${subtitleHTML}</div>
-      <div style="text-align:right"><div style="font-weight:700">${(ex.hasOwnProperty('startTime')?displayed+' s':(ex.hasOwnProperty('startPerSide')?displayed+'/side':(ex.hasOwnProperty('startReps')?displayed+' reps':displayed+' lbs')))}</div></div>
-    </div>
-    <div style="margin-top:10px" id="ex_${day}_${exIdx}"></div>`;
-    container.appendChild(exCard);
 
+    let subtitleHTML='';
+    if(ex.hasOwnProperty('startTime')){subtitleHTML=`<div class="muted small">Hold: ${displayed} s</div>`;}
+    else if(ex.hasOwnProperty('startPerSide')){subtitleHTML=`<div class="muted small">${ex.notes||''} — ${displayed}/side</div>`;}
+    else{subtitleHTML=`<div class="muted small">${ex.notes||''} — ${displayed} reps</div>`;}
+    exCard.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:flex-start"><div><div style="font-weight:700">${ex.name}</div>${subtitleHTML}</div><div style="text-align:right"><div style="font-weight:700">${displayed}${ex.hasOwnProperty('startTime')?' s':' lbs'}</div></div></div><div style="margin-top:10px" id="ex_${day}_${exIdx}"></div>`;
+    container.appendChild(exCard);
     const placeholder=exCard.querySelector(`#ex_${day}_${exIdx}`);
+
+    // Sets
     const setRow=document.createElement('div');setRow.className='set-buttons';
     for(let s=1;s<=ex.sets;s++){
       const btn=document.createElement('button');btn.type='button';btn.className='set-btn';
@@ -243,91 +257,57 @@ function renderExercises(week,day){
       const right=document.createElement('span');right.className='half right';right.textContent='✗';
       btn.appendChild(left);btn.appendChild(right);
       const state=DS.getProgress(week,day,exIdx,s);
-      if(state==='complete') btn.classList.add('pass'); else if(state==='failed') btn.classList.add('fail');
-      btn.addEventListener('click', e=>{
-        e.stopPropagation();
-        const rect=btn.getBoundingClientRect();
-        const clickX=e.clientX-rect.left;
-        if(e.detail===2){DS.removeProgress(week,day,exIdx,s); renderExercises(week,day); return;}
-        const half=rect.width/2;
-        if(clickX<half){DS.saveProgress(week,day,exIdx,s,'complete'); btn.classList.remove('fail'); btn.classList.add('pass');}
-        else{DS.saveProgress(week,day,exIdx,s,'failed'); btn.classList.remove('pass'); btn.classList.add('fail');}
-        renderExercises(week,day);
+      if(state==='complete')btn.classList.add('pass');else if(state==='failed')btn.classList.add('fail');
+      btn.addEventListener('click',(ev)=>{
+        const half=btn.offsetWidth/2;
+        const clickX=ev.clientX-btn.getBoundingClientRect().left;
+        if(clickX<half){DS.saveProgress(week,day,exIdx,s,'complete');btn.classList.remove('fail');btn.classList.add('pass');}
+        else{DS.saveProgress(week,day,exIdx,s,'failed');btn.classList.remove('pass');btn.classList.add('fail');}
+        renderDaysGrid();
       });
       setRow.appendChild(btn);
     }
     placeholder.appendChild(setRow);
 
-    // Weight adjustments
-    if(ex.hasOwnProperty('startWeight')){
-      const nextWeek=(week%12)+1;
+    // Next-week adjustments
+    const nextWeek=(week%12)+1;
+    if(ex.hasOwnProperty('startWeight') || ex.hasOwnProperty('startTime') || ex.hasOwnProperty('startPerSide') || ex.hasOwnProperty('startReps')){
       const wrap=document.createElement('div');wrap.style.marginTop='10px';
-      wrap.innerHTML=`<div style="font-weight:700;margin-bottom:6px">Weight change for next week</div>`;
-      const planned=DS.getValue(nextWeek,day,exIdx);
-      const plannedText=document.createElement('div');plannedText.className='muted small';plannedText.style.marginBottom='6px';
-      plannedText.textContent='Planned next-week weight: '+(planned!==null?planned+' lbs':'none'); wrap.appendChild(plannedText);
       const deltas=[-10,-5,-3,-2,0,2,3,5,10];
-      const row=document.createElement('div');row.style.display='flex';row.style.gap='8px';row.style.flexWrap='wrap';
-      deltas.forEach(delta=>{
-        const btn=document.createElement('button');btn.type='button';btn.className='adjust-btn';btn.textContent=(delta>0?'+'+delta:String(delta));
-        if(planned!==null && Math.abs(planned-(displayed+delta))<0.0005) btn.classList.add('active');
-        btn.addEventListener('click', e=>{e.stopPropagation(); DS.saveValue(nextWeek,day,exIdx,displayed+delta); renderExercises(week,day);});
-        row.appendChild(btn);
-      });
-      const clr=document.createElement('button');clr.type='button';clr.className='adjust-clear';clr.textContent='Clear';
-      clr.addEventListener('click', e=>{e.stopPropagation(); DS.removeValue(nextWeek,day,exIdx); renderExercises(week,day);});
-      row.appendChild(clr); wrap.appendChild(row); placeholder.appendChild(wrap);
-    }
-
-    // Reps/time adjustments
-    if(ex.hasOwnProperty('startTime') || ex.hasOwnProperty('startPerSide') || ex.hasOwnProperty('startReps')){
-      const nextWeek=(week%12)+1; const wrap=document.createElement('div');wrap.style.marginTop='10px';
-      let title=''; let deltas=[];
-      if(ex.hasOwnProperty('startTime')){title='Change for Next Week (seconds)'; deltas=[-30,-20,-10,0,10,20,30];}
-      else if(ex.hasOwnProperty('startPerSide')){title='Change for Next Week (reps per side)'; deltas=[-10,-5,-3,0,3,5,10];}
-      else if(ex.hasOwnProperty('startReps')){title='Change for Next Week (reps per set)'; deltas=[-10,-5,-3,0,3,5,10];}
+      const title='Next Week Adjustment';
       wrap.innerHTML=`<div style="font-weight:700;margin-bottom:6px">${title}</div>`;
       const planned=DS.getValue(nextWeek,day,exIdx);
       const plannedText=document.createElement('div');plannedText.className='muted small';plannedText.style.marginBottom='6px';
-      plannedText.textContent='Planned next-week: '+(planned!==null?(ex.hasOwnProperty('startTime')?planned+' s':ex.hasOwnProperty('startPerSide')?planned+' /side':planned+' reps'):'none'); wrap.appendChild(plannedText);
+      plannedText.textContent='Planned next-week: '+(planned!==null?(ex.hasOwnProperty('startTime')?planned+' s':ex.hasOwnProperty('startReps')?planned+' reps':planned+' lbs'):'none');
+      wrap.appendChild(plannedText);
       const row=document.createElement('div');row.style.display='flex';row.style.gap='8px';row.style.flexWrap='wrap';
       deltas.forEach(delta=>{
-        const btn=document.createElement('button');btn.type='button';btn.className='adjust-btn';btn.textContent=(delta>0?'+'+delta:String(delta));
-        if(planned!==null && Math.round(planned)===Math.round(displayed+delta)) btn.classList.add('active');
-        btn.addEventListener('click', e=>{e.stopPropagation(); DS.saveValue(nextWeek,day,exIdx,Math.round(displayed+delta)); renderExercises(week,day);});
+        const btn=document.createElement('button');btn.type='button';btn.className='adjust-btn';btn.textContent=(delta>0?'+'+delta:delta);
+        if(planned!==null && Math.round(planned)===Math.round(displayed+delta))btn.classList.add('active');
+        btn.addEventListener('click',()=>{DS.saveValue(nextWeek,day,exIdx,Math.round(displayed+delta)); renderDaysGrid();});
         row.appendChild(btn);
       });
       const clr=document.createElement('button');clr.type='button';clr.className='adjust-clear';clr.textContent='Clear';
-      clr.addEventListener('click', e=>{e.stopPropagation(); DS.removeValue(nextWeek,day,exIdx); renderExercises(week,day);});
-      row.appendChild(clr); wrap.appendChild(row); placeholder.appendChild(wrap);
+      clr.addEventListener('click',()=>{DS.removeValue(nextWeek,day,exIdx); renderDaysGrid();});
+      row.appendChild(clr);
+      wrap.appendChild(row);
+      placeholder.appendChild(wrap);
     }
-
   });
 }
 
-dom.resetBtn.addEventListener('click',()=>{if(confirm('Reset all saved program data? This cannot be undone.')){DS.resetAll();renderDaysGrid();}});
-if(!localStorage.getItem(key('week'))) DS.setWeek(1);
+// ===== EVENTS =====
+dom.resetBtn.addEventListener('click',()=>{
+  if(confirm('Are you sure you want to reset all progress?')){
+    DS.resetAll();renderDaysGrid();
+  }
+});
+
+// ===== INIT =====
+if(!localStorage.getItem(key('week')))DS.setWeek(1);
 renderWeekSelector(DS.getWeek());
 renderDaysGrid();
-
-// --- WAKE LOCK ---
-let wakeLock=null;
-async function requestWakeLock(){
-  try{
-    if('wakeLock' in navigator){
-      wakeLock=await navigator.wakeLock.request('screen');
-      document.addEventListener('visibilitychange',async ()=>{
-        if(wakeLock!==null && document.visibilityState==='visible'){
-          wakeLock=await navigator.wakeLock.request('screen');
-        }
-      });
-    } else console.log('Wake Lock API not supported');
-  }catch(err){console.error(`Could not keep screen on: ${err.message}`);}
-}
-document.addEventListener('click',{once:true,passive:true},()=>{requestWakeLock();});
-
 })();
 </script>
 </body>
 </html>
-
