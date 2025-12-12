@@ -1,499 +1,342 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>12-Week Program</title>
-
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Optimized Dumbbell + Pull-Up Program</title>
 <style>
-body {
-  font-family: Arial, sans-serif;
-  padding: 15px;
-  background: #f7f7f7;
-  margin: 0;
+:root{
+  --accent:#3b82f6;
+  --muted:#6b7280;
+  --success:#10b981;
+  --danger:#ef4444;
+  --complete-day:#34d399;
+  --split-left: rgba(16,185,129,0.14);
+  --split-right: rgba(239,68,68,0.12);
 }
-
-h2 {
-  margin-top: 30px;
-}
-
-.day {
-  background: white;
-  border-radius: 10px;
-  margin-bottom: 15px;
-  padding: 15px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-}
-
-.day-header {
-  font-size: 20px;
-  font-weight: bold;
-  cursor: pointer;
-  padding-bottom: 10px;
-}
-
-.exercise {
-  margin-bottom: 20px;
-  padding: 10px 0;
-  border-bottom: 1px solid #ddd;
-}
-
-.exercise:last-child {
-  border-bottom: none;
-}
-
-.set-row {
-  display: flex;
-  gap: 10px;
-  margin-top: 5px;
-}
-
-.set-btn {
-  width: 42px;
-  height: 42px;
-  font-size: 18px;
-  border-radius: 8px;
-  background: #eee;
-  border: 1px solid #ccc;
-}
-
-.set-btn.completed {
-  background: #4caf50;
-  color: white;
-}
-
-.adjust-btn, .adjust-clear {
-  padding: 7px 14px;
-  border-radius: 7px;
-  border: 1px solid #ccc;
-  font-size: 16px;
-  background: #eee;
-}
-
-.adjust-btn.active {
-  background: #4caf50;
-  color: white;
-}
-
-.amrap-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-top: 8px;
-}
-
-.amrap-input {
-  font-size: 22px;
-  padding: 10px 14px;
-  width: 90px;
-  border-radius: 12px;
-  border: 2px solid #666;
-}
-
-.amrap-adjust {
-  width: 45px;
-  height: 45px;
-  font-size: 26px;
-  border-radius: 12px;
-  background: #ddd;
-  border: 1px solid #aaa;
-}
-
-.amrap-total {
-  margin-top: 6px;
-  font-size: 14px;
-  color: #444;
-}
-
-.muted {
-  color: #777;
-  font-size: 14px;
-}
-
-.weight-label {
-  margin-top: 6px;
-  font-size: 14px;
+*{box-sizing:border-box}
+body{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:#f5f5f5;margin:0;padding:20px;color:#111}
+.container{max-width:1100px;margin:0 auto}
+.card{background:#fff;padding:18px;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,.06);margin-bottom:18px}
+h1{font-size:1.4rem;margin:0 0 6px}
+p.lead{margin:0;color:var(--muted)}
+.controls{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.week-selector{display:flex;gap:8px;flex-wrap:wrap}
+.week-btn{padding:8px 12px;border-radius:8px;border:2px solid #ddd;background:#fff;font-weight:600;cursor:pointer}
+.week-btn:hover{background:#f3f4f6}
+.week-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.week-btn.deload{background:#fef3c7;border-color:#fbbf24}
+.week-btn.deload.active{background:#fbbf24;color:#78350f}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.day-card{padding:14px;border-radius:8px;border:2px solid transparent;cursor:pointer;transition: background 0.2s, border-color 0.2s;}
+.day-card:hover{transform:translateY(-2px);transition:transform .12s}
+.day-card.selected{border-color:var(--accent);background:#eff6ff}
+.day-card.complete{background:#a7f3d0;border-color:var(--complete-day);}
+.day-card > div:first-child{font-weight:700;border-bottom:1px solid #d1d5db;padding-bottom:6px;margin-bottom:8px;}
+.day-card > div:last-child{max-height:0;overflow:hidden;transition: max-height 0.35s ease;}
+.day-card.expanded > div:last-child{max-height:2000px;}
+.exercise-card{padding:14px;border-radius:8px;border:1px solid #e6e6e6;margin-bottom:10px;background:#fdfdfd;box-shadow:0 1px 4px rgba(0,0,0,0.05);transition: transform 0.08s;}
+.exercise-card:hover{transform:translateY(-2px);}
+.set-buttons{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.set-btn{position:relative;padding:6px 10px;border-radius:8px;border:1px solid #d1d5db;background:#fff;cursor:pointer;min-width:68px;user-select:none;display:inline-flex;align-items:center;justify-content:center;overflow:hidden;transition: transform 0.08s;}
+.set-btn:hover{transform:scale(1.05);}
+.set-btn .half{display:inline-block;width:50%;text-align:center;padding:6px 8px;pointer-events:none}
+.set-btn .half.left{background:var(--split-left)}
+.set-btn .half.right{background:var(--split-right)}
+.set-btn.pass{background:var(--success);border-color:var(--success);color:#fff}
+.set-btn.fail{background:var(--danger);border-color:var(--danger);color:#fff}
+.adjust-btn{padding:6px 8px;border-radius:6px;border:1px solid #d1d5db;background:#fff;cursor:pointer}
+.adjust-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.adjust-clear{padding:6px 8px;border-radius:6px;border:1px solid #ef4444;background:#fff;color:#ef4444;cursor:pointer}
+.amrap-input{width:60px;padding:4px 6px;margin-left:6px;border:1px solid #d1d5db;border-radius:6px;}
+.amrap-last{font-size:0.85rem;color:var(--muted);margin-left:4px;}
+.amrap-total{font-size:0.9rem;color:#111;margin-top:4px;font-weight:600;}
+.hidden{display:none}
+.muted{color:var(--muted);font-size:.95rem}
+.flex{display:flex;gap:12px;align-items:center}
+.spacer{flex:1}
+.small{font-size:.9rem}
+footer{margin-top:18px;text-align:center;color:var(--muted);font-size:0.9rem}
+@media print{.controls,button{display:none}}
+@media (max-width:500px){
+  .grid{grid-template-columns:1fr;}
+  .exercise-card{padding:12px;}
+  .controls{flex-direction:column;gap:8px;}
+  .week-btn{padding:6px 10px;font-size:0.9rem;}
+  .adjust-btn,.adjust-clear,.set-btn{padding:4px 6px;font-size:0.85rem;}
+  .amrap-input{width:50px;font-size:0.85rem;}
 }
 </style>
 </head>
 <body>
+<div class="container">
+  <div class="card">
+    <h1>Optimized Dumbbell + Pull-Up Program</h1>
+    <p class="lead">Expert-recommended sets/reps, AMRAP tracking with last week reference, live cumulative total, weight adjustments, yoga/cardio day.</p>
+    <div id="cycleInfo" class="muted small" style="margin-top:10px"></div>
+  </div>
 
-<h2>Week <span id="weekDisplay"></span></h2>
-<select id="weekSelect"></select>
+  <div class="card controls" aria-label="controls">
+    <div>
+      <strong>Select Week</strong>
+      <div id="weekSelector" class="week-selector" aria-label="week selector"></div>
+    </div>
+    <div class="spacer"></div>
+    <div style="min-width:240px;text-align:right">
+      <button id="resetBtn" class="week-btn" title="Reset progress">Reset</button>
+    </div>
+  </div>
 
-<div id="daysContainer"></div>
-
-<button id="resetBtn" style="margin-top:25px;">Reset All Progress</button>
+  <div id="round2Container"></div>
+  <div id="workoutGrid" class="grid"></div>
+  <footer class="muted">LocalStorage — data saved per browser.</footer>
+</div>
 
 <script>
-/* ===========================
-   PROGRAM STRUCTURE
-=========================== */
+(async function(){
+'use strict';
 
-const PROGRAM = [
-  {
-    name: "Day 1 — Upper A (Strength)",
-    exercises: [
-      { name: "Dumbbell Bench Press", sets: 4, reps: 8, weight: true },
-      { name: "1-Arm Dumbbell Row", sets: 4, reps: 10, weight: true },
-      { name: "Dumbbell Shoulder Press", sets: 3, reps: 8, weight: true },
-      { name: "Tricep Overhead Extension", sets: 3, reps: 10, weight: true },
-      { name: "Bicep Curls", sets: 3, reps: 10, weight: true }
-    ]
-  },
-  {
-    name: "Day 2 — Lower + Core",
-    exercises: [
-      { name: "Goblet Squat", sets: 4, reps: 10, weight: true },
-      { name: "Dumbbell RDL", sets: 4, reps: 10, weight: true },
-      { name: "Dumbbell Lunges", sets: 3, reps: 8, weight: true },
-      { name: "Glute Bridge (Dumbbell)", sets: 3, reps: 12, weight: true }
-    ]
-  },
-  {
-    name: "Day 3 — Yoga / Cardio",
-    exercises: [
-      { name: "Yoga / Cardio Session", sets: 1, reps: 1, isYoga: true }
-    ]
-  },
-  {
-    name: "Day 4 — Upper B (Hypertrophy)",
-    exercises: [
-      { name: "Incline Dumbbell Bench Press", sets: 3, reps: 10, weight: true },
-      { name: "Dumbbell Lateral Raises", sets: 3, reps: 12, weight: true },
-      { name: "Dumbbell Row (Elbow Out)", sets: 3, reps: 12, weight: true },
-      { name: "Face Pull (Band/Dumbbell Variation)", sets: 3, reps: 12, weight: true },
-      { name: "Hammer Curls", sets: 3, reps: 12, weight: true }
-    ]
-  },
-  {
-    name: "Day 5 — AMRAP + Conditioning",
-    exercises: [
-      { name: "Pull-Ups", sets: 3, amrap: true },
-      { name: "Push-Ups", sets: 3, amrap: true }
-    ]
-  },
-  {
-    name: "Day 6 — Extra Cardio",
-    exercises: [
-      { name: "Cardio Session", sets: 1, reps: 1, isYoga: true }
-    ]
+// ===== WAKE LOCK =====
+let wakeLock = null;
+async function requestWakeLock() {
+  if('wakeLock' in navigator){
+    try{wakeLock = await navigator.wakeLock.request('screen');}
+    catch(e){console.warn('Wake lock not available:',e);}
   }
-];
+}
+document.addEventListener('click', requestWakeLock, {once:true});
+document.addEventListener('touchstart', requestWakeLock, {once:true});
 
-/* ===========================
-   DATA STORAGE
-=========================== */
-
-const LS = {
-  get(key) { return JSON.parse(localStorage.getItem(key)); },
-  set(key, val) { localStorage.setItem(key, JSON.stringify(val)); },
-  remove(key) { localStorage.removeItem(key); }
+// ===== PROGRAM DATA =====
+const PROGRAM = {
+  1:{name:"Upper Body Push",exercises:[
+    {name:"Incline Dumbbell Press",sets:4,reps:"8–12",weight:true,notes:"Upper chest"},
+    {name:"Flat Dumbbell Press",sets:4,reps:"8–12",weight:true,notes:"Chest"},
+    {name:"Standing Overhead Press",sets:4,reps:"8–10",weight:true,notes:"Shoulders"},
+    {name:"Lateral Raises",sets:3,reps:"12–15",weight:true,notes:"Rear delts"},
+    {name:"Overhead Tricep Extension",sets:3,reps:"12–15",weight:true,notes:"Triceps"},
+    {name:"Reverse Fly / Face Pull",sets:3,reps:"12–15",weight:true,notes:"Rear delts / shoulder health"}
+  ]},
+  2:{name:"Lower Body",exercises:[
+    {name:"Goblet Squats",sets:4,reps:"8–12",weight:true},
+    {name:"Romanian Deadlifts",sets:4,reps:"8–10",weight:true},
+    {name:"Bulgarian Split Squats",sets:3,reps:"8–12",weight:true},
+    {name:"Dumbbell Lunges",sets:3,reps:"8–12",weight:true},
+    {name:"Glute Bridges",sets:3,reps:"12–15",weight:true},
+    {name:"Calf Raises",sets:3,reps:"12–15",weight:true}
+  ]},
+  3:{name:"Upper Body Pull",exercises:[
+    {name:"Pull-Ups",sets:4,reps:"AMRAP",amrap:true},
+    {name:"Bent Over Rows",sets:4,reps:"8–12",weight:true},
+    {name:"Single Arm Row",sets:4,reps:"8–12",weight:true},
+    {name:"Hammer Curls",sets:3,reps:"10–12",weight:true},
+    {name:"Reverse Flys",sets:3,reps:"12–15",weight:true}
+  ]},
+  4:{name:"Full Body & Conditioning",exercises:[
+    {name:"Dumbbell Clean & Press",sets:3,reps:"8–10",weight:true},
+    {name:"Goblet Squats",sets:4,reps:"10–12",weight:true},
+    {name:"Push-Ups",sets:3,reps:"AMRAP",amrap:true},
+    {name:"Dumbbell Swings",sets:3,reps:"12–15",weight:true},
+    {name:"Conditioning Intervals",sets:1,reps:"n/a"}
+  ]},
+  5:{name:"Yoga/Cardio",exercises:[
+    {name:"Yoga / Mobility / Light Cardio",sets:1,reps:"n/a"}
+  ]},
+  6:{name:"Dumbbell Cardio / Low-Impact Conditioning",exercises:[
+    {name:"Dumbbell Cardio Circuit",sets:1,reps:"n/a"}
+  ]}
 };
 
-function key(...parts) {
-  return parts.join("_");
-}
+const PREFIX='prog_opt_amrap_v3_';
+function key(...parts){return PREFIX+parts.join('|');}
 
-function currentWeek() {
-  return Number(LS.get("week") || 1);
-}
+const DS={
+  getWeek(){return parseInt(localStorage.getItem(key('week'))||'1',10);},
+  setWeek(w){localStorage.setItem(key('week'),String(w));},
+  saveProgress(w,d,e,s,v){localStorage.setItem(key('p',w,d,e,'s'+s),String(v));},
+  getProgress(w,d,e,s){return localStorage.getItem(key('p',w,d,e,'s'+s))||null;},
+  removeProgress(w,d,e,s){localStorage.removeItem(key('p',w,d,e,'s'+s));},
+  saveValue(w,d,e,v){localStorage.setItem(key('v',w,d,e),String(v));},
+  getValue(w,d,e){const v=localStorage.getItem(key('v',w,d,e));return v!==null?Number(v):null;},
+  removeValue(w,d,e){localStorage.removeItem(key('v',w,d,e));},
+  resetAll(){for(let i=localStorage.length-1;i>=0;i--){const k=localStorage.key(i);if(k&&k.startsWith(PREFIX))localStorage.removeItem(k);}}
+};
 
-/* ===========================
-   RENDERING
-=========================== */
+const dom={
+  cycleInfo:document.getElementById('cycleInfo'),
+  weekSelector:document.getElementById('weekSelector'),
+  grid:document.getElementById('workoutGrid'),
+  resetBtn:document.getElementById('resetBtn'),
+  round2Container:document.getElementById('round2Container')
+};
 
-const weekSelect = document.getElementById("weekSelect");
-const weekDisplay = document.getElementById("weekDisplay");
-const daysContainer = document.getElementById("daysContainer");
-
-function initWeekSelect() {
-  for (let i = 1; i <= 12; i++) {
-    const opt = document.createElement("option");
-    opt.value = i;
-    opt.textContent = "Week " + i;
-    weekSelect.appendChild(opt);
-  }
-  weekSelect.value = currentWeek();
-  weekDisplay.textContent = currentWeek();
-
-  weekSelect.addEventListener("change", () => {
-    LS.set("week", weekSelect.value);
-    weekDisplay.textContent = weekSelect.value;
-    renderProgram();
-  });
-}
-
-function renderProgram() {
-  daysContainer.innerHTML = "";
-
-  PROGRAM.forEach((day, dayIndex) => {
-    const div = document.createElement("div");
-    div.className = "day";
-
-    const header = document.createElement("div");
-    header.className = "day-header";
-    header.textContent = day.name;
-
-    const content = document.createElement("div");
-    content.style.display = "none";
-
-    header.addEventListener("click", () => {
-      content.style.display = content.style.display === "none" ? "block" : "none";
-    });
-
-    div.appendChild(header);
-    div.appendChild(content);
-
-    day.exercises.forEach((ex, exIndex) => {
-      const exDiv = document.createElement("div");
-      exDiv.className = "exercise";
-
-      const title = document.createElement("div");
-      title.textContent = `${ex.name}`;
-      exDiv.appendChild(title);
-
-      if (ex.amrap) {
-        renderAMRAPExercise(exDiv, dayIndex, exIndex, ex);
-      } else if (ex.isYoga) {
-        renderYogaExercise(exDiv, dayIndex, exIndex);
-      } else {
-        renderStandardExercise(exDiv, dayIndex, exIndex, ex);
-      }
-
-      content.appendChild(exDiv);
-    });
-
-    daysContainer.appendChild(div);
-  });
-}
-
-/* ===========================
-   SET BUTTONS
-=========================== */
-
-function renderStandardExercise(container, dayIndex, exIndex, ex) {
-  const week = currentWeek();
-
-  for (let s = 1; s <= ex.sets; s++) {
-    const setRow = document.createElement("div");
-    setRow.className = "set-row";
-
-    const btn = document.createElement("button");
-    btn.className = "set-btn";
-
-    const saved = LS.get(key("set", week, dayIndex, exIndex, s)) || false;
-    if (saved) btn.classList.add("completed");
-
-    btn.textContent = s;
-
-    btn.addEventListener("click", e => {
-      e.stopPropagation();
-      const newVal = !saved;
-      LS.set(key("set", week, dayIndex, exIndex, s), newVal);
-      btn.classList.toggle("completed");
-    });
-
-    setRow.appendChild(btn);
-
-    const label = document.createElement("div");
-    label.className = "muted";
-    label.textContent = `${ex.reps} reps`;
-    setRow.appendChild(label);
-
-    container.appendChild(setRow);
-  }
-
-  // Weight adjustments
-  if (ex.weight) {
-    renderWeightAdjustment(container, dayIndex, exIndex);
-  }
-}
-
-/* ===========================
-   YOGA/CARDIO
-=========================== */
-function renderYogaExercise(container, dayIndex, exIndex) {
-  const week = currentWeek();
-
-  const row = document.createElement("div");
-  row.className = "set-row";
-
-  const btn = document.createElement("button");
-  btn.className = "set-btn";
-  btn.textContent = "✓";
-
-  const saved = LS.get(key("yoga", week, dayIndex));
-  if (saved) btn.classList.add("completed");
-
-  btn.addEventListener("click", e => {
-    e.stopPropagation();
-    const newVal = !saved;
-    LS.set(key("yoga", week, dayIndex), newVal);
-    btn.classList.toggle("completed");
-  });
-
-  row.appendChild(btn);
-  container.appendChild(row);
-}
-
-/* ===========================
-   AMRAP EXERCISES
-=========================== */
-
-function renderAMRAPExercise(container, dayIndex, exIndex, ex) {
-  const week = currentWeek();
-  let totalReps = 0;
-  const totalLabel = document.createElement("div");
-  totalLabel.className = "amrap-total";
-
-  for (let s = 1; s <= ex.sets; s++) {
-    const row = document.createElement("div");
-    row.className = "amrap-row";
-
-    // -- Decrement button --
-    const minus = document.createElement("button");
-    minus.className = "amrap-adjust";
-    minus.textContent = "-";
-
-    // -- Input --
-    const input = document.createElement("input");
-    input.type = "number";
-    input.inputmode = "numeric";
-    input.pattern = "[0-9]*";
-    input.className = "amrap-input";
-
-    // Prevent collapsing the day
-    ["click", "focus", "touchstart", "keydown"].forEach(evt => {
-      input.addEventListener(evt, e => e.stopPropagation());
-    });
-
-    const saved = LS.get(key("amrap", week, dayIndex, exIndex, s)) || "";
-    const last = LS.get(key("amrap", week - 1, dayIndex, exIndex, s)) || "";
-    input.value = saved;
-
-    if (saved) totalReps += Number(saved);
-
-    // -- Increment button --
-    const plus = document.createElement("button");
-    plus.className = "amrap-adjust";
-    plus.textContent = "+";
-
-    // Save handler
-    function save() {
-      LS.set(key("amrap", week, dayIndex, exIndex, s), input.value);
-      renderProgram(); // refresh totals live
+// Helper functions
+function clear(el){while(el.firstChild)el.removeChild(el.firstChild);}
+function allSetsComplete(w,d){
+  const exs=PROGRAM[d].exercises;
+  for(let i=0;i<exs.length;i++){
+    for(let s=1;s<=exs[i].sets;s++){
+      if(!DS.getProgress(w,d,i+1,s))return false;
     }
-
-    minus.addEventListener("click", e => {
-      e.stopPropagation();
-      input.value = Math.max(0, Number(input.value || 0) - 1);
-      save();
-    });
-
-    plus.addEventListener("click", e => {
-      e.stopPropagation();
-      input.value = Number(input.value || 0) + 1;
-      save();
-    });
-
-    input.addEventListener("blur", save);
-
-    // Last week ref
-    const lastLabel = document.createElement("div");
-    lastLabel.className = "muted";
-    lastLabel.textContent = `(last: ${last || 0})`;
-
-    row.appendChild(minus);
-    row.appendChild(input);
-    row.appendChild(plus);
-    row.appendChild(lastLabel);
-
-    container.appendChild(row);
   }
-
-  totalLabel.textContent = `Total today: ${totalReps} reps`;
-  container.appendChild(totalLabel);
+  return true;
+}
+function allWeeksComplete(){
+  for(let w=1;w<=12;w++){
+    for(let d in PROGRAM){
+      if(!allSetsComplete(w,d))return false;
+    }
+  }
+  return true;
 }
 
-/* ===========================
-   WEIGHT ADJUSTMENTS
-=========================== */
+// Render week selector
+function renderWeekSelector(currentWeek){
+  clear(dom.weekSelector);
+  for(let w=1;w<=12;w++){
+    const btn=document.createElement('button');btn.type='button';btn.className='week-btn';btn.textContent='Week '+w;
+    if(w===currentWeek)btn.classList.add('active');
+    if(w%4===0)btn.classList.add('deload');
+    btn.addEventListener('click',()=>{DS.setWeek(w);renderDaysGrid();});
+    dom.weekSelector.appendChild(btn);
+  }
+}
 
-function renderWeightAdjustment(container, dayIndex, exIndex) {
-  const week = currentWeek();
-  const nextWeek = week === 12 ? 1 : week + 1;
-  const row = document.createElement("div");
-
-  const label = document.createElement("div");
-  label.className = "weight-label";
-  label.textContent = "Next Week Weight Adjustment:";
-  container.appendChild(label);
-
-  const deltas = [-10, -5, -3, -2, 0, 2, 3, 5, 10];
-  const wrap = document.createElement("div");
-  wrap.style.display = "flex";
-  wrap.style.flexWrap = "wrap";
-  wrap.style.gap = "8px";
-
-  deltas.forEach(delta => {
-    const btn = document.createElement("button");
-    btn.className = "adjust-btn";
-    btn.textContent = delta > 0 ? "+" + delta : delta;
-
-    btn.addEventListener("click", e => {
-      e.stopPropagation();
-      LS.set(key("weightNext", nextWeek, dayIndex, exIndex), delta);
-      renderProgram();
-    });
-
-    wrap.appendChild(btn);
+// Render days
+function renderDaysGrid(){
+  const week=DS.getWeek();
+  dom.cycleInfo.textContent='Week '+week;
+  clear(dom.grid);
+  dom.round2Container.innerHTML='';
+  const days=Object.keys(PROGRAM).map(k=>parseInt(k,10)).sort((a,b)=>a-b);
+  days.forEach(day=>{
+    const def=PROGRAM[day];
+    const card=document.createElement('div');card.className='card day-card';
+    if(allSetsComplete(week,day))card.classList.add('complete');
+    card.tabIndex=0;
+    card.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center"><strong>Day ${day}</strong><span class="muted small">${def.name}</span></div>`;
+    const container=document.createElement('div');container.id='dayExercises_'+day;card.appendChild(container);
+    card.addEventListener('click',()=>{card.classList.toggle('expanded');});
+    dom.grid.appendChild(card);
+    renderExercises(week,day);
   });
 
-  const clr = document.createElement("button");
-  clr.className = "adjust-clear";
-  clr.textContent = "Clear";
-
-  clr.addEventListener("click", e => {
-    e.stopPropagation();
-    LS.remove(key("weightNext", nextWeek, dayIndex, exIndex));
-    renderProgram();
-  });
-
-  wrap.appendChild(clr);
-  container.appendChild(wrap);
-}
-
-/* ===========================
-   RESET
-=========================== */
-
-document.getElementById("resetBtn").addEventListener("click", () => {
-  if (confirm("Clear ALL saved data?")) {
-    localStorage.clear();
-    location.reload();
+  if(allWeeksComplete()){
+    const btnCard=document.createElement('div');btnCard.className='card';
+    const btn=document.createElement('button');btn.className='week-btn';btn.textContent='All 12 weeks completed. Reset for Round 2?';
+    btn.addEventListener('click',()=>{
+      if(confirm('Reset all progress for Round 2? We will keep last weights.')){
+        for(let w=1;w<=12;w++){for(let d in PROGRAM){PROGRAM[d].exercises.forEach((ex,idx)=>{
+          const exIdx=idx+1;const nextVal=DS.getValue(w,d,exIdx);
+          if(nextVal!==null)DS.saveValue(1,d,exIdx,nextVal);
+        });}}
+        DS.resetAll();renderDaysGrid();
+      }
+    });
+    btnCard.appendChild(btn);dom.round2Container.appendChild(btnCard);
   }
-});
-
-/* ===========================
-   WAKE LOCK
-=========================== */
-
-let wakeLock = null;
-async function enableWakeLock() {
-  try {
-    wakeLock = await navigator.wakeLock.request("screen");
-  } catch (err) { }
 }
 
-document.body.addEventListener("click", () => enableWakeLock(), { once: true });
+// Render exercises with AMRAP cumulative tracking
+function renderExercises(week,day){
+  const container=document.getElementById('dayExercises_'+day);
+  clear(container);
+  PROGRAM[day].exercises.forEach((ex,idx)=>{
+    const exIdx=idx+1;
+    const exCard=document.createElement('div');exCard.className='exercise-card';
+    let subtitleHTML=ex.reps!=="n/a"?`<div class="muted small">${ex.reps} reps${ex.amrap?" (AMRAP)":" per set"}${ex.notes? " — "+ex.notes:""}</div>`:'';
+    exCard.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:flex-start"><div><div style="font-weight:700">${ex.name}</div>${subtitleHTML}</div></div><div style="margin-top:10px" id="ex_${day}_${exIdx}"></div>`;
+    container.appendChild(exCard);
 
-/* ===========================
-   INIT
-=========================== */
+    const placeholder=exCard.querySelector(`#ex_${day}_${exIdx}`);
+    const setRow=document.createElement('div');setRow.className='set-buttons';
 
-initWeekSelect();
-renderProgram();
+    let totalLabel = null;
+    let amrapTotals = [];
+
+    for(let s=1;s<=ex.sets;s++){
+      const btn=document.createElement('button');btn.type='button';btn.className='set-btn';
+      const left=document.createElement('span');left.className='half left';left.textContent='✓';
+      const right=document.createElement('span');right.className='half right';right.textContent='✗';
+      btn.appendChild(left);btn.appendChild(right);
+
+      const state=DS.getProgress(week,day,exIdx,s);
+      if(state==='complete')btn.classList.add('pass');else if(state==='failed')btn.classList.add('fail');
+
+      btn.addEventListener('click',(ev)=>{
+        ev.stopPropagation();
+        if(ex.amrap){
+          DS.saveProgress(week,day,exIdx,s,'complete');
+        } else {
+          const rect=btn.getBoundingClientRect();const clickX=ev.clientX-rect.left;const half=rect.width/2;
+          if(clickX<half){DS.saveProgress(week,day,exIdx,s,'complete');btn.classList.remove('fail');btn.classList.add('pass');} 
+          else {DS.saveProgress(week,day,exIdx,s,'failed');btn.classList.remove('pass');btn.classList.add('fail');}
+        }
+        renderDaysGrid();
+      });
+
+      setRow.appendChild(btn);
+
+      if(ex.amrap){
+        const input=document.createElement('input');
+        input.type='number';input.min='0';input.className='amrap-input';
+        const lastWeek=week>1?DS.getValue(week-1,day,exIdx+s):null;
+        const valThisWeek=DS.getValue(week,day,exIdx+s);
+        input.value=valThisWeek||'';
+        input.addEventListener('input',()=>{
+          DS.saveValue(week,day,exIdx+s,Number(input.value));
+          amrapTotals[s-1] = Number(input.value)||0;
+          if(totalLabel) totalLabel.textContent = 'Total this day: '+amrapTotals.reduce((a,b)=>a+b,0)+' reps';
+        });
+        setRow.appendChild(input);
+
+        if(lastWeek!==null){
+          const lastSpan=document.createElement('span');lastSpan.className='amrap-last';
+          lastSpan.textContent=`(last: ${lastWeek})`;
+          setRow.appendChild(lastSpan);
+        }
+
+        amrapTotals[s-1] = valThisWeek||0;
+        if(!totalLabel){
+          totalLabel = document.createElement('div');totalLabel.className='amrap-total';
+          totalLabel.textContent = 'Total this day: '+amrapTotals.reduce((a,b)=>a+b,0)+' reps';
+          placeholder.appendChild(totalLabel);
+        }
+      }
+    }
+    placeholder.appendChild(setRow);
+
+    // Weight adjustments if applicable
+    if(ex.weight){
+      const nextWeek=(week%12)+1;
+      const wrap=document.createElement('div');wrap.style.marginTop='10px';
+      wrap.innerHTML=`<div style="font-weight:700;margin-bottom:6px">Next Week Adjustment</div>`;
+      const planned=DS.getValue(nextWeek,day,exIdx);
+      const plannedText=document.createElement('div');plannedText.className='muted small';plannedText.style.marginBottom='6px';
+      plannedText.textContent='Planned next-week: '+(planned!==null?planned+' lbs':'none');wrap.appendChild(plannedText);
+      const deltas=[-10,-5,-3,-2,0,2,3,5,10];
+      const row=document.createElement('div');row.style.display='flex';row.style.gap='8px';row.style.flexWrap='wrap';
+      deltas.forEach(delta=>{
+        const btn=document.createElement('button');btn.type='button';btn.className='adjust-btn';
+        btn.textContent=(delta>0? "+"+delta : String(delta));
+        if(planned!==null && Math.round(planned)===Math.round((DS.getValue(week,day,exIdx)||0)+delta))btn.classList.add('active');
+        btn.addEventListener('click',()=>{DS.saveValue(nextWeek,day,exIdx,Math.round((DS.getValue(week,day,exIdx)||0)+delta));renderDaysGrid();});
+        row.appendChild(btn);
+      });
+      const clr=document.createElement('button');clr.type='button';clr.className='adjust-clear';clr.textContent='Clear';
+      clr.addEventListener('click',()=>{DS.removeValue(nextWeek,day,exIdx);renderDaysGrid();});
+      row.appendChild(clr);wrap.appendChild(row);placeholder.appendChild(wrap);
+    }
+  });
+}
+
+// ===== Reset Button =====
+dom.resetBtn.addEventListener('click',()=>{if(confirm('Reset all saved program data? This cannot be undone.')){DS.resetAll();renderDaysGrid();}});
+if(!localStorage.getItem(key('week')))DS.setWeek(1);
+renderWeekSelector(DS.getWeek());
+renderDaysGrid();
+
+})();
 </script>
 </body>
 </html>
