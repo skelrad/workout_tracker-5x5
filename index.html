@@ -206,13 +206,27 @@ function renderWeekSelector(currentWeek){
 function renderDaysGrid(){
   const week=DS.getWeek();
   dom.cycleInfo.textContent='Week '+week;
+  
+  // Store which days are currently expanded
+  const expandedDays = new Set();
+  document.querySelectorAll('.day-card.expanded').forEach(card => {
+    const dayMatch = card.id.match(/day_(\d+)/);
+    if(dayMatch) expandedDays.add(parseInt(dayMatch[1]));
+  });
+  
   clear(dom.grid);
   dom.round2Container.innerHTML='';
   const days=Object.keys(PROGRAM).map(k=>parseInt(k,10)).sort((a,b)=>a-b);
   days.forEach(day=>{
     const def=PROGRAM[day];
-    const card=document.createElement('div');card.className='card day-card';
+    const card=document.createElement('div');
+    card.className='card day-card';
+    card.id = 'day_' + day;
     if(allSetsComplete(week,day))card.classList.add('complete');
+    
+    // Restore expanded state
+    if(expandedDays.has(day)) card.classList.add('expanded');
+    
     card.tabIndex=0;
     card.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center"><strong>Day ${day}</strong><span class="muted small">${def.name}</span></div>`;
     const container=document.createElement('div');container.id='dayExercises_'+day;card.appendChild(container);
@@ -267,12 +281,28 @@ function renderExercises(week,day){
         ev.stopPropagation();
         if(ex.amrap){
           DS.saveProgress(week,day,exIdx,s,'complete');
+          // Update just the button state without re-rendering everything
+          btn.classList.remove('fail');
+          btn.classList.add('pass');
+          // Update completion status of the day card
+          const dayCard = document.getElementById('day_' + day);
+          if(allSetsComplete(week,day)){
+            dayCard.classList.add('complete');
+          } else {
+            dayCard.classList.remove('complete');
+          }
         } else {
           const rect=btn.getBoundingClientRect();const clickX=ev.clientX-rect.left;const half=rect.width/2;
           if(clickX<half){DS.saveProgress(week,day,exIdx,s,'complete');btn.classList.remove('fail');btn.classList.add('pass');} 
           else {DS.saveProgress(week,day,exIdx,s,'failed');btn.classList.remove('pass');btn.classList.add('fail');}
+          // Update completion status of the day card
+          const dayCard = document.getElementById('day_' + day);
+          if(allSetsComplete(week,day)){
+            dayCard.classList.add('complete');
+          } else {
+            dayCard.classList.remove('complete');
+          }
         }
-        renderDaysGrid();
       });
 
       setRow.appendChild(btn);
@@ -283,7 +313,10 @@ function renderExercises(week,day){
         const lastWeek=week>1?DS.getValue(week-1,day,exIdx+s):null;
         const valThisWeek=DS.getValue(week,day,exIdx+s);
         input.value=valThisWeek||'';
-        input.addEventListener('input',()=>{
+        input.addEventListener('click',(ev)=>{ev.stopPropagation();});
+        input.addEventListener('focus',(ev)=>{ev.stopPropagation();});
+        input.addEventListener('input',(ev)=>{
+          ev.stopPropagation();
           DS.saveValue(week,day,exIdx+s,Number(input.value));
           amrapTotals[s-1] = Number(input.value)||0;
           if(totalLabel) totalLabel.textContent = 'Total this day: '+amrapTotals.reduce((a,b)=>a+b,0)+' reps';
@@ -320,11 +353,19 @@ function renderExercises(week,day){
         const btn=document.createElement('button');btn.type='button';btn.className='adjust-btn';
         btn.textContent=(delta>0? "+"+delta : String(delta));
         if(planned!==null && Math.round(planned)===Math.round((DS.getValue(week,day,exIdx)||0)+delta))btn.classList.add('active');
-        btn.addEventListener('click',()=>{DS.saveValue(nextWeek,day,exIdx,Math.round((DS.getValue(week,day,exIdx)||0)+delta));renderDaysGrid();});
+        btn.addEventListener('click',(ev)=>{
+          ev.stopPropagation();
+          DS.saveValue(nextWeek,day,exIdx,Math.round((DS.getValue(week,day,exIdx)||0)+delta));
+          renderDaysGrid();
+        });
         row.appendChild(btn);
       });
       const clr=document.createElement('button');clr.type='button';clr.className='adjust-clear';clr.textContent='Clear';
-      clr.addEventListener('click',()=>{DS.removeValue(nextWeek,day,exIdx);renderDaysGrid();});
+      clr.addEventListener('click',(ev)=>{
+        ev.stopPropagation();
+        DS.removeValue(nextWeek,day,exIdx);
+        renderDaysGrid();
+      });
       row.appendChild(clr);wrap.appendChild(row);placeholder.appendChild(wrap);
     }
   });
