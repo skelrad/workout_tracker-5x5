@@ -49,15 +49,15 @@
 </div>
 
 <script>
-const KEY = 'WT_V7_FINAL_BUILD';
+const KEY = 'WT_V8_MASTER_BUILD';
 let App = {
     view: 'setup',
     cw: 1,
     expanded: new Set(),
     activeDay: null,
     t: { n: 'My Program', w: 8, days: {} },
-    p: {}, // Logs: { "week-day-ex-set": "pass/fail" }
-    weights: {} // Memory: { "Exercise Name": currentWeight }
+    p: {}, 
+    weights: {} 
 };
 
 const S = {
@@ -87,6 +87,27 @@ const TEMPLATES = {
             2: { n: "Back & Shoulders", ex: [{n:"DB Chest Supported Row", s:3, r:"12", w:20}, {n:"DB Lateral Raises", s:3, r:"15", w:10}, {n:"DB Bicep Curls", s:3, r:"12", w:15}]},
             3: { n: "Full Body Functional", ex: [{n:"DB Thrusters", s:3, r:"10", w:15}, {n:"DB Romanian Deadlift", s:3, r:"12", w:25}, {n:"Plank", s:3, r:"45s", w:0}]}
         }
+    },
+    executive_express: {
+        n: "20-Min Executive Express", w: 4,
+        days: {
+            1: { n: "Full Body Burn", ex: [{n:"DB Thrusters", s:3, r:"12", w:15}, {n:"DB Renegade Rows", s:3, r:"10", w:15}, {n:"DB Floor Press", s:3, r:"12", w:20}]},
+            2: { n: "Fast Walk / Recovery", rest: true }
+        }
+    },
+    bone_density: {
+        n: "Structural Strength (Bone Density)", w: 10,
+        days: {
+            1: { n: "Lower Body Load", ex: [{n:"DB Box Step-Ups", s:4, r:"8", w:15}, {n:"DB Sumo Squat", s:3, r:"10", w:25}, {n:"DB Stiff Leg Deadlift", s:3, r:"10", w:20}]},
+            2: { n: "Upper Body Load", ex: [{n:"DB Standing OH Press", s:3, r:"8", w:15}, {n:"BW Incline Pushups", s:3, r:"12", w:0}, {n:"DB Farmers Walk", s:3, r:"40 steps", w:25}]}
+        }
+    },
+    posture_fix: {
+        n: "Desk-Job Antidote (Posture/Glutes)", w: 8,
+        days: {
+            1: { n: "Posterior Chain focus", ex: [{n:"DB Glute Bridges", s:3, r:"15", w:20}, {n:"DB Reverse Flyes", s:3, r:"12", w:10}, {n:"BW Superman", s:3, r:"15", w:0}, {n:"DB Goblet Squat", s:3, r:"12", w:20}]},
+            2: { n: "Core & Mobility", ex: [{n:"Dead-Bugs", s:3, r:"12", w:0}, {n:"Side Plank", s:2, r:"30s", w:0}, {n:"Cat-Cow Stretch", s:2, r:"10", w:0}]}
+        }
     }
 };
 
@@ -109,7 +130,6 @@ function rSetup(root) {
     root.innerHTML = `
         <div class="card"><small>Program Name</small><input class="input" value="${App.t.n}" oninput="App.t.n=this.value"></div>
         <div style="display:flex;justify-content:space-between;margin-bottom:10px"><h2>Program Setup</h2><button class="btn btn-primary btn-sm" onclick="addDay()">+ Add Day</button></div>
-        ${daysArr.length === 0 ? '<p style="text-align:center;color:var(--muted)">No days yet. Load a template or add a day.</p>' : ''}
         ${daysArr.map(d => {
             const day = App.t.days[d];
             const open = App.expanded.has(d);
@@ -172,7 +192,7 @@ function rActiveWorkout(root) {
                 }).join('')}
             </div>
             <div class="weight-ctrl">
-                <small style="font-weight:bold">Next Session:</small>
+                <small style="font-weight:bold">Adjust Next Session:</small>
                 <button class="btn btn-secondary btn-sm" onclick="adjWeight('${e.n}', -2.5)">-2.5</button>
                 <button class="btn btn-secondary btn-sm" onclick="adjWeight('${e.n}', 2.5)">+2.5</button>
                 <input type="number" class="input" style="width:75px" placeholder="Manual" onchange="adjWeight('${e.n}', parseFloat(this.value), true)">
@@ -235,7 +255,7 @@ function showTemplates() {
 
 function loadT(k) {
     App.t = JSON.parse(JSON.stringify(TEMPLATES[k]));
-    App.weights = {}; // Clear old memory for new program
+    App.weights = {}; 
     App.p = {};
     App.expanded.clear();
     location.reload(); 
