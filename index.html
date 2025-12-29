@@ -49,7 +49,7 @@
 </div>
 
 <script>
-const KEY = 'WT_V8_MASTER_BUILD';
+const KEY = 'WT_V9_STABLE';
 let App = {
     view: 'setup',
     cw: 1,
@@ -58,17 +58,6 @@ let App = {
     t: { n: 'My Program', w: 8, days: {} },
     p: {}, 
     weights: {} 
-};
-
-const S = {
-    save() { localStorage.setItem(KEY, JSON.stringify({t: App.t, p: App.p, cw: App.cw, weights: App.weights})); },
-    load() {
-        const data = localStorage.getItem(KEY);
-        if (data) {
-            const d = JSON.parse(data);
-            App.t = d.t; App.p = d.p; App.cw = d.cw; App.weights = d.weights || {};
-        }
-    }
 };
 
 const TEMPLATES = {
@@ -111,6 +100,17 @@ const TEMPLATES = {
     }
 };
 
+const S = {
+    save() { localStorage.setItem(KEY, JSON.stringify({t: App.t, p: App.p, cw: App.cw, weights: App.weights})); },
+    load() {
+        const data = localStorage.getItem(KEY);
+        if (data) {
+            const d = JSON.parse(data);
+            App.t = d.t || App.t; App.p = d.p || {}; App.cw = d.cw || 1; App.weights = d.weights || {};
+        }
+    }
+};
+
 function setView(v, btn) { 
     App.view = v; App.activeDay = null; 
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
@@ -129,7 +129,7 @@ function rSetup(root) {
     const daysArr = Object.keys(App.t.days).map(Number).sort((a,b)=>a-b);
     root.innerHTML = `
         <div class="card"><small>Program Name</small><input class="input" value="${App.t.n}" oninput="App.t.n=this.value"></div>
-        <div style="display:flex;justify-content:space-between;margin-bottom:10px"><h2>Program Setup</h2><button class="btn btn-primary btn-sm" onclick="addDay()">+ Add Day</button></div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:10px"><h2>Setup</h2><button class="btn btn-primary btn-sm" onclick="addDay()">+ Add Day</button></div>
         ${daysArr.map(d => {
             const day = App.t.days[d];
             const open = App.expanded.has(d);
@@ -148,7 +148,7 @@ function rSetup(root) {
                                 <div style="display:flex;gap:5px;margin-top:8px">
                                     <div><small>Sets</small><input type="number" class="input" style="width:50px" value="${e.s}" oninput="App.t.days[${d}].ex[${i}].s=parseInt(this.value)||0"></div>
                                     <div><small>Reps</small><input class="input" style="width:70px" value="${e.r}" oninput="App.t.days[${d}].ex[${i}].r=this.value"></div>
-                                    <div><small>Wt (Start)</small><input type="number" class="input" style="width:70px" value="${e.w}" oninput="App.t.days[${d}].ex[${i}].w=parseFloat(this.value)||0"></div>
+                                    <div><small>Wt</small><input type="number" class="input" style="width:70px" value="${e.w}" oninput="App.t.days[${d}].ex[${i}].w=parseFloat(this.value)||0"></div>
                                     <button class="btn btn-danger btn-sm" style="align-self:flex-end" onclick="App.t.days[${d}].ex.splice(${i},1);r()">✕</button>
                                 </div>
                             </div>`).join('') + `<button class="btn btn-secondary btn-sm" style="width:100%" onclick="addEx(${d})">+ Add Exercise</button>` : ''}
@@ -167,7 +167,7 @@ function rWorkoutList(root) {
         const comp = getDayProgress(d);
         return `<div class="card" onclick="App.activeDay=${d};r()" style="display:flex;justify-content:space-between;align-items:center">
             <div><strong>Day ${d}: ${App.t.days[d].n}</strong></div>
-            <div class="prog-badge">${comp === 100 ? '✅ Done' : comp + '%'}</div>
+            <div class="prog-badge">${comp === 100 ? '✅' : comp + '%'}</div>
         </div>`;
     }).join('')}`;
 }
@@ -192,7 +192,7 @@ function rActiveWorkout(root) {
                 }).join('')}
             </div>
             <div class="weight-ctrl">
-                <small style="font-weight:bold">Adjust Next Session:</small>
+                <small style="font-weight:bold">Update Next:</small>
                 <button class="btn btn-secondary btn-sm" onclick="adjWeight('${e.n}', -2.5)">-2.5</button>
                 <button class="btn btn-secondary btn-sm" onclick="adjWeight('${e.n}', 2.5)">+2.5</button>
                 <input type="number" class="input" style="width:75px" placeholder="Manual" onchange="adjWeight('${e.n}', parseFloat(this.value), true)">
@@ -236,7 +236,7 @@ function getDayProgress(dIdx) {
 
 function addDay() {
     const id = Math.max(0, ...Object.keys(App.t.days).map(Number)) + 1;
-    App.t.days[id] = { n: 'New Training Day', ex: [], rest: false };
+    App.t.days[id] = { n: 'New Day', ex: [], rest: false };
     App.expanded.add(id); r();
 }
 
@@ -247,7 +247,7 @@ function fullReset() { if(confirm("Wipe all data and start over?")) { localStora
 function showTemplates() {
     const ov = document.createElement('div');
     ov.className = 'modal-overlay';
-    ov.innerHTML = `<div class="modal-content"><h3>Templates Library</h3>
+    ov.innerHTML = `<div class="modal-content"><h3>Templates</h3>
         ${Object.keys(TEMPLATES).map(k=>`<div style="padding:15px;border:1px solid #eee;margin-bottom:8px;border-radius:10px;cursor:pointer" onclick="loadT('${k}')"><strong>${TEMPLATES[k].n}</strong></div>`).join('')}
         <button class="btn btn-secondary" style="width:100%" onclick="this.closest('.modal-overlay').remove()">Cancel</button></div>`;
     document.body.appendChild(ov);
@@ -258,7 +258,8 @@ function loadT(k) {
     App.weights = {}; 
     App.p = {};
     App.expanded.clear();
-    location.reload(); 
+    r(); // This renders the view immediately with the new template
+    document.querySelector('.modal-overlay').remove();
 }
 
 S.load();
