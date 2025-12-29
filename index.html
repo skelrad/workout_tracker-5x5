@@ -1,223 +1,244 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>40+ Longevity Tracker</title>
-<style>
-:root{--accent:#3b82f6;--muted:#64748b;--success:#10b981;--danger:#ef4444;--bg:#f8fafc;--card:#fff;--border:#e2e8f0}
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:#1e293b;line-height:1.5;padding:16px}
-.container{max-width:600px;margin:0 auto}
-.card{background:var(--card);padding:20px;border-radius:16px;box-shadow:0 4px 6px -1px rgba(0,0,0,.1);margin-bottom:16px}
-.btn{padding:10px 18px;border-radius:10px;border:none;font-weight:600;cursor:pointer;transition:0.2s;display:inline-flex;align-items:center;justify-content:center;gap:8px}
-.btn-primary{background:var(--accent);color:#fff}
-.btn-secondary{background:#f1f5f9;color:#475569}
-.btn-danger{background:var(--danger);color:#fff}
-.btn-sm{padding:6px 12px;font-size:.85rem}
-.input{padding:10px;border:1px solid var(--border);border-radius:8px;width:100%;font-size:1rem}
-.nav{display:flex;gap:8px;margin-bottom:20px;background:#e2e8f0;padding:4px;border-radius:12px}
-.nav-btn{flex:1;padding:10px;border:none;font-weight:600;cursor:pointer;color:#64748b;border-radius:8px;background:none}
-.nav-btn.active{background:#fff;color:var(--accent);box-shadow:0 2px 4px rgba(0,0,0,.05)}
-.day-setup{border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;background:#fff}
-.ex-card{border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:8px;background:#f8fafc}
-.set-row{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
-.set-btn{width:45px;height:45px;border-radius:8px;border:2px solid var(--border);background:#fff;font-weight:bold;cursor:pointer}
-.set-btn.pass{background:var(--success);color:#fff;border-color:var(--success)}
-.set-btn.fail{background:var(--danger);color:#fff;border-color:var(--danger)}
-.modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(15,23,42,0.6);display:flex;align-items:center;justify-content:center;z-index:1000;backdrop-filter:blur(4px)}
-.modal-content{background:#fff;border-radius:20px;padding:24px;max-width:450px;width:90%;max-height:80vh;overflow-y:auto}
-.template-item{border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:8px;cursor:pointer}
-.prog-bar{height:8px;background:#e2e8f0;border-radius:4px;overflow:hidden;margin:10px 0}
-.prog-fill{height:100%;background:var(--success);transition:width 0.3s}
-</style>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <title>40+ Progressive Tracker Pro</title>
+    <style>
+        :root{--accent:#3b82f6;--muted:#64748b;--success:#10b981;--danger:#ef4444;--bg:#f8fafc;--card:#fff;--border:#e2e8f0}
+        *{box-sizing:border-box;margin:0;padding:0}
+        body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:#1e293b;line-height:1.5;padding:16px}
+        .container{max-width:600px;margin:0 auto}
+        .card{background:var(--card);padding:20px;border-radius:16px;box-shadow:0 4px 6px -1px rgba(0,0,0,.1);margin-bottom:16px}
+        .btn{padding:10px 18px;border-radius:10px;border:none;font-weight:600;cursor:pointer;transition:0.2s;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+        .btn-primary{background:var(--accent);color:#fff}
+        .btn-secondary{background:#f1f5f9;color:#475569}
+        .btn-danger{background:var(--danger);color:#fff}
+        .btn-sm{padding:6px 12px;font-size:.85rem}
+        .input{padding:8px;border:1px solid var(--border);border-radius:8px;width:100%;font-size:1rem}
+        .nav{display:flex;gap:8px;margin-bottom:20px;background:#e2e8f0;padding:4px;border-radius:12px}
+        .nav-btn{flex:1;padding:10px;border:none;font-weight:600;cursor:pointer;color:#64748b;border-radius:8px;background:none}
+        .nav-btn.active{background:#fff;color:var(--accent);box-shadow:0 2px 4px rgba(0,0,0,.05)}
+        .day-setup{border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;background:#fff}
+        .ex-card{border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:8px;background:#f8fafc}
+        .set-btn{width:40px;height:40px;border-radius:8px;border:2px solid var(--border);background:#fff;font-weight:bold;cursor:pointer}
+        .set-btn.pass{background:var(--success);color:#fff;border-color:var(--success)}
+        .set-btn.fail{background:var(--danger);color:#fff;border-color:var(--danger)}
+        .weight-ctrl{display:flex;align-items:center;gap:8px;background:#f1f5f9;padding:10px;border-radius:10px;margin-top:10px}
+        .modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(15,23,42,0.6);display:flex;align-items:center;justify-content:center;z-index:1000;backdrop-filter:blur(4px)}
+        .modal-content{background:#fff;border-radius:20px;padding:24px;max-width:450px;width:90%;max-height:80vh;overflow-y:auto}
+        .prog-badge{font-size:0.75rem;padding:2px 8px;border-radius:10px;background:#e2e8f0;color:var(--muted)}
+    </style>
 </head>
 <body>
 <div class="container">
     <header style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
-        <h1 style="font-size:1.2rem">Workout Tracker <span style="color:var(--accent)">Pro</span></h1>
-        <button class="btn btn-secondary btn-sm" onclick="showTemplates()">📋 Templates</button>
+        <h1 style="font-size:1.1rem">Workout <span style="color:var(--accent)">Pro</span></h1>
+        <div style="display:flex;gap:5px">
+            <button class="btn btn-secondary btn-sm" onclick="showTemplates()">📋 Lib</button>
+            <button class="btn btn-danger btn-sm" onclick="fullReset()">🔄 Wipe</button>
+        </div>
     </header>
 
-    <div class="nav" id="mainNav">
-        <button class="nav-btn active" onclick="setView('setup')">⚙️ Setup</button>
-        <button class="nav-btn" onclick="setView('workout')">💪 Train</button>
+    <div class="nav">
+        <button class="nav-btn active" onclick="setView('setup', this)">⚙️ Setup</button>
+        <button class="nav-btn" onclick="setView('workout', this)">💪 Train</button>
     </div>
 
     <div id="app"></div>
 </div>
 
 <script>
-const KEY = 'WT_V5_FINAL';
+const KEY = 'WT_V7_FINAL_BUILD';
 let App = {
     view: 'setup',
-    cw: 1, // Current Week
+    cw: 1,
     expanded: new Set(),
-    activeDay: null, // If tracking a workout
-    t: { n: 'My Program', w: 8, days: {} }, // Template
-    p: {} // Progress/Logs
+    activeDay: null,
+    t: { n: 'My Program', w: 8, days: {} },
+    p: {}, // Logs: { "week-day-ex-set": "pass/fail" }
+    weights: {} // Memory: { "Exercise Name": currentWeight }
 };
 
 const S = {
-    save() { localStorage.setItem(KEY, JSON.stringify({t: App.t, p: App.p, cw: App.cw})); },
+    save() { localStorage.setItem(KEY, JSON.stringify({t: App.t, p: App.p, cw: App.cw, weights: App.weights})); },
     load() {
         const data = localStorage.getItem(KEY);
         if (data) {
-            const parsed = JSON.parse(data);
-            App.t = parsed.t; App.p = parsed.p; App.cw = parsed.cw;
+            const d = JSON.parse(data);
+            App.t = d.t; App.p = d.p; App.cw = d.cw; App.weights = d.weights || {};
         }
     }
 };
 
 const TEMPLATES = {
-    forty_plus: {
-        n: "40+ Muscle & Vitality", w: 8,
+    vitality_40: {
+        n: "40+ Vitality & Longevity", w: 12,
         days: {
-            1: { n: "Upper Body (Chest/Arms Focus)", ex: [
-                {n:"DB Floor Press", s:3, r:"12"},
-                {n:"DB Single Arm Row", s:3, r:"10"},
-                {n:"BW Push-ups", s:3, r:"AMRAP"},
-                {n:"DB Hammer Curls", s:3, r:"12"}
-            ]},
-            2: { n: "Cardio Recovery", rest: 1 },
-            3: { n: "Lower Body & Back", ex: [
-                {n:"DB Goblet Squat", s:3, r:"12"},
-                {n:"DB Romanian Deadlift", s:3, r:"12"},
-                {n:"DB Chest Supported Row", s:3, r:"12"},
-                {n:"BW Plank", s:3, r:"45s"}
-            ]}
+            1: { n: "Strength A: Push/Pull", ex: [{n:"DB Goblet Squat", s:3, r:"12", w:20}, {n:"BW Push-ups", s:3, r:"AMRAP", w:0}, {n:"DB Single Arm Row", s:3, r:"10", w:20}]},
+            2: { n: "Active Recovery", rest: true },
+            3: { n: "Strength B: Hinge/Core", ex: [{n:"DB Romanian Deadlift", s:3, r:"12", w:25}, {n:"DB Overhead Press", s:3, r:"10", w:15}, {n:"Dead-Bugs", s:3, r:"12", w:0}]}
+        }
+    },
+    muscle_gain: {
+        n: "40+ Muscle Focus (Chest/Back/Arms)", w: 8,
+        days: {
+            1: { n: "Chest & Arms Focus", ex: [{n:"DB Floor Press", s:3, r:"12", w:25}, {n:"DB Hammer Curls", s:3, r:"12", w:15}, {n:"DB Tricep Extensions", s:3, r:"12", w:15}]},
+            2: { n: "Back & Shoulders", ex: [{n:"DB Chest Supported Row", s:3, r:"12", w:20}, {n:"DB Lateral Raises", s:3, r:"15", w:10}, {n:"DB Bicep Curls", s:3, r:"12", w:15}]},
+            3: { n: "Full Body Functional", ex: [{n:"DB Thrusters", s:3, r:"10", w:15}, {n:"DB Romanian Deadlift", s:3, r:"12", w:25}, {n:"Plank", s:3, r:"45s", w:0}]}
         }
     }
 };
 
-function setView(v) { App.view = v; r(); }
+function setView(v, btn) { 
+    App.view = v; App.activeDay = null; 
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    r(); 
+}
 
 function r() {
     const root = document.getElementById('app');
-    const navBtns = document.querySelectorAll('.nav-btn');
-    navBtns[0].classList.toggle('active', App.view === 'setup');
-    navBtns[1].classList.toggle('active', App.view === 'workout');
-
     if (App.activeDay) return rActiveWorkout(root);
-    if (App.view === 'setup') rSetup(root);
-    else rWorkoutList(root);
+    App.view === 'setup' ? rSetup(root) : rWorkoutList(root);
     S.save();
 }
 
 function rSetup(root) {
     const daysArr = Object.keys(App.t.days).map(Number).sort((a,b)=>a-b);
     root.innerHTML = `
-        <div class="card">
-            <label style="font-size:0.8rem;font-weight:bold">Program Name</label>
-            <input class="input" value="${App.t.n}" oninput="App.t.n=this.value">
-        </div>
-        <div style="display:flex;justify-content:space-between;margin-bottom:10px">
-            <h2>Days</h2>
-            <button class="btn btn-primary btn-sm" onclick="addDay()">+ Add Day</button>
-        </div>
+        <div class="card"><small>Program Name</small><input class="input" value="${App.t.n}" oninput="App.t.n=this.value"></div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:10px"><h2>Program Setup</h2><button class="btn btn-primary btn-sm" onclick="addDay()">+ Add Day</button></div>
+        ${daysArr.length === 0 ? '<p style="text-align:center;color:var(--muted)">No days yet. Load a template or add a day.</p>' : ''}
         ${daysArr.map(d => {
             const day = App.t.days[d];
             const open = App.expanded.has(d);
             return `
             <div class="day-setup">
                 <div style="display:flex;justify-content:space-between;cursor:pointer" onclick="App.expanded.has(${d})?App.expanded.delete(${d}):App.expanded.add(${d});r()">
-                    <strong>Day ${d}: ${day.n || 'Rest'}</strong>
-                    <span>${open?'▲':'▼'}</span>
+                    <strong>Day ${d}: ${day.n}</strong><span>${open?'▲':'▼'}</span>
                 </div>
                 ${open ? `
                     <div style="margin-top:10px">
-                        <input class="input" value="${day.n}" oninput="App.t.days[${d}].n=this.value" placeholder="Day Name">
-                        <label style="display:block;margin:8px 0"><input type="checkbox" ${day.rest?'checked':''} onchange="App.t.days[${d}].rest=this.checked;r()"> Rest Day</label>
-                        ${!day.rest ? `
-                            ${(day.ex||[]).map((e,i) => `
-                                <div class="ex-card">
-                                    <input style="font-weight:bold;border:none;width:80%" value="${e.n}" oninput="App.t.days[${d}].ex[${i}].n=this.value">
-                                    <div style="display:flex;gap:10px;margin-top:5px">
-                                        <input type="number" class="input" style="width:60px" value="${e.s}" oninput="App.t.days[${d}].ex[${i}].s=parseInt(this.value)||0">
-                                        <input class="input" style="width:100px" value="${e.r}" oninput="App.t.days[${d}].ex[${i}].r=this.value">
-                                        <button class="btn btn-danger btn-sm" onclick="App.t.days[${d}].ex.splice(${i},1);r()">✕</button>
-                                    </div>
+                        <small>Day Name</small><input class="input" value="${day.n}" oninput="App.t.days[${d}].n=this.value">
+                        <label style="display:block;margin:10px 0"><input type="checkbox" ${day.rest?'checked':''} onchange="App.t.days[${d}].rest=this.checked;r()"> Rest Day</label>
+                        ${!day.rest ? (day.ex||[]).map((e,i) => `
+                            <div class="ex-card">
+                                <input style="font-weight:bold;border:none;width:70%;background:transparent" value="${e.n}" oninput="App.t.days[${d}].ex[${i}].n=this.value">
+                                <div style="display:flex;gap:5px;margin-top:8px">
+                                    <div><small>Sets</small><input type="number" class="input" style="width:50px" value="${e.s}" oninput="App.t.days[${d}].ex[${i}].s=parseInt(this.value)||0"></div>
+                                    <div><small>Reps</small><input class="input" style="width:70px" value="${e.r}" oninput="App.t.days[${d}].ex[${i}].r=this.value"></div>
+                                    <div><small>Wt (Start)</small><input type="number" class="input" style="width:70px" value="${e.w}" oninput="App.t.days[${d}].ex[${i}].w=parseFloat(this.value)||0"></div>
+                                    <button class="btn btn-danger btn-sm" style="align-self:flex-end" onclick="App.t.days[${d}].ex.splice(${i},1);r()">✕</button>
                                 </div>
-                            `).join('')}
-                            <button class="btn btn-secondary btn-sm" style="width:100%" onclick="addEx(${d})">+ Exercise</button>
-                        ` : ''}
-                        <button class="btn btn-danger btn-sm" style="width:100%;margin-top:10px" onclick="delete App.t.days[${d}];r()">Delete Day</button>
-                    </div>
-                ` : ''}
+                            </div>`).join('') + `<button class="btn btn-secondary btn-sm" style="width:100%" onclick="addEx(${d})">+ Add Exercise</button>` : ''}
+                        <button class="btn btn-danger btn-sm" style="width:100%;margin-top:15px;opacity:0.7" onclick="if(confirm('Delete Day?')){delete App.t.days[${d}];r()}">Delete Day</button>
+                    </div>` : ''}
             </div>`;
-        }).join('')}
-    `;
+        }).join('')}`;
 }
 
 function rWorkoutList(root) {
     const daysArr = Object.keys(App.t.days).map(Number).sort((a,b)=>a-b);
-    root.innerHTML = `
-        <div class="card">
-            <h3>Week ${App.cw}</h3>
-            <div style="display:flex;gap:8px;overflow-x:auto;padding:10px 0">
-                ${Array.from({length:App.t.w},(_,i)=>i+1).map(w=>`<button class="btn btn-sm ${w===App.cw?'btn-primary':'btn-secondary'}" onclick="App.cw=${w};r()">${w}</button>`).join('')}
-            </div>
-        </div>
-        ${daysArr.map(d => `
-            <div class="card" onclick="App.activeDay=${d};r()">
-                <div style="display:flex;justify-content:space-between">
-                    <strong>Day ${d}: ${App.t.days[d].n}</strong>
-                    <button class="btn btn-primary btn-sm">Start</button>
-                </div>
-            </div>
-        `).join('')}
-    `;
+    root.innerHTML = `<div class="card"><h3>Week ${App.cw}</h3><div style="display:flex;gap:5px;overflow-x:auto;padding:10px 0">
+        ${Array.from({length:App.t.w||8},(_,i)=>i+1).map(w=>`<button class="btn btn-sm ${w===App.cw?'btn-primary':'btn-secondary'}" onclick="App.cw=${w};r()">${w}</button>`).join('')}
+    </div></div>
+    ${daysArr.map(d => {
+        const comp = getDayProgress(d);
+        return `<div class="card" onclick="App.activeDay=${d};r()" style="display:flex;justify-content:space-between;align-items:center">
+            <div><strong>Day ${d}: ${App.t.days[d].n}</strong></div>
+            <div class="prog-badge">${comp === 100 ? '✅ Done' : comp + '%'}</div>
+        </div>`;
+    }).join('')}`;
 }
 
 function rActiveWorkout(root) {
     const day = App.t.days[App.activeDay];
-    root.innerHTML = `
-        <button class="btn btn-secondary btn-sm" onclick="App.activeDay=null;r()">← Exit</button>
-        <h2 style="margin:10px 0">Week ${App.cw} - ${day.n}</h2>
-        ${(day.ex||[]).map((e, exIdx) => `
-            <div class="card">
+    root.innerHTML = `<button class="btn btn-secondary btn-sm" onclick="App.activeDay=null;r()">← Back</button>
+    <h2 style="margin:15px 0">${day.n}</h2>
+    ${(day.ex||[]).map((e, exIdx) => {
+        const curWeight = App.weights[e.n] !== undefined ? App.weights[e.n] : e.w;
+        return `
+        <div class="card">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
                 <strong>${e.n}</strong>
-                <p class="muted">${e.s} Sets x ${e.r} Reps</p>
-                <div class="set-row">
-                    ${Array.from({length:e.s}, (_, sIdx) => {
-                        const state = App.p[`${App.cw}-${App.activeDay}-${exIdx}-${sIdx}`];
-                        return `<button class="set-btn ${state||''}" onclick="toggleSet(${exIdx}, ${sIdx})">${sIdx+1}</button>`;
-                    }).join('')}
-                </div>
+                <span style="color:var(--accent);font-weight:bold;font-size:1.1rem">${curWeight} lbs</span>
             </div>
-        `).join('')}
-        <button class="btn btn-primary" style="width:100%" onclick="App.activeDay=null;r()">Finish Workout</button>
-    `;
+            <div style="display:flex;gap:8px;margin-bottom:15px">
+                ${Array.from({length:e.s}, (_, sIdx) => {
+                    const k = `${App.cw}-${App.activeDay}-${exIdx}-${sIdx}`;
+                    const state = App.p[k];
+                    return `<button class="set-btn ${state||''}" onclick="markSet(${exIdx}, ${sIdx})">${sIdx+1}</button>`;
+                }).join('')}
+            </div>
+            <div class="weight-ctrl">
+                <small style="font-weight:bold">Next Session:</small>
+                <button class="btn btn-secondary btn-sm" onclick="adjWeight('${e.n}', -2.5)">-2.5</button>
+                <button class="btn btn-secondary btn-sm" onclick="adjWeight('${e.n}', 2.5)">+2.5</button>
+                <input type="number" class="input" style="width:75px" placeholder="Manual" onchange="adjWeight('${e.n}', parseFloat(this.value), true)">
+            </div>
+        </div>`;
+    }).join('')}
+    <button class="btn btn-primary" style="width:100%;padding:15px" onclick="App.activeDay=null;r()">Finish Session</button>`;
 }
 
-function toggleSet(exIdx, sIdx) {
-    const key = `${App.cw}-${App.activeDay}-${exIdx}-${sIdx}`;
-    const cur = App.p[key];
-    App.p[key] = (cur === 'pass') ? 'fail' : (cur === 'fail') ? null : 'pass';
+function markSet(exIdx, sIdx) {
+    const k = `${App.cw}-${App.activeDay}-${exIdx}-${sIdx}`;
+    const cur = App.p[k];
+    App.p[k] = (cur === 'pass') ? 'fail' : (cur === 'fail') ? null : 'pass';
     r();
+}
+
+function adjWeight(exName, val, isManual = false) {
+    const base = App.weights[exName] !== undefined ? App.weights[exName] : findInTemplate(exName);
+    App.weights[exName] = isManual ? val : (base + val);
+    r();
+}
+
+function findInTemplate(name) {
+    for (let d in App.t.days) {
+        let found = App.t.days[d].ex?.find(e => e.n === name);
+        if (found) return found.w;
+    }
+    return 0;
+}
+
+function getDayProgress(dIdx) {
+    const day = App.t.days[dIdx];
+    if (day.rest) return 100;
+    let total = 0, done = 0;
+    day.ex.forEach((e, exIdx) => {
+        total += e.s;
+        for (let s = 0; s < e.s; s++) if (App.p[`${App.cw}-${dIdx}-${exIdx}-${s}`]) done++;
+    });
+    return total === 0 ? 0 : Math.round((done / total) * 100);
 }
 
 function addDay() {
     const id = Math.max(0, ...Object.keys(App.t.days).map(Number)) + 1;
-    App.t.days[id] = { n: 'New Day', ex: [], rest: false };
-    App.expanded.add(id);
-    r();
+    App.t.days[id] = { n: 'New Training Day', ex: [], rest: false };
+    App.expanded.add(id); r();
 }
 
-function addEx(d) { App.t.days[d].ex.push({n: 'New Exercise', s: 3, r: '10'}); r(); }
+function addEx(d) { App.t.days[d].ex.push({n: 'New Exercise', s: 3, r: '10', w: 0}); r(); }
+
+function fullReset() { if(confirm("Wipe all data and start over?")) { localStorage.clear(); location.reload(); } }
 
 function showTemplates() {
     const ov = document.createElement('div');
     ov.className = 'modal-overlay';
-    ov.innerHTML = `<div class="modal-content"><h3>Templates</h3>${Object.keys(TEMPLATES).map(k=>`<div class="template-item" onclick="loadT('${k}')">${TEMPLATES[k].n}</div>`).join('')}<button class="btn btn-secondary btn-sm" style="width:100%" onclick="this.closest('.modal-overlay').remove()">Cancel</button></div>`;
+    ov.innerHTML = `<div class="modal-content"><h3>Templates Library</h3>
+        ${Object.keys(TEMPLATES).map(k=>`<div style="padding:15px;border:1px solid #eee;margin-bottom:8px;border-radius:10px;cursor:pointer" onclick="loadT('${k}')"><strong>${TEMPLATES[k].n}</strong></div>`).join('')}
+        <button class="btn btn-secondary" style="width:100%" onclick="this.closest('.modal-overlay').remove()">Cancel</button></div>`;
     document.body.appendChild(ov);
 }
 
 function loadT(k) {
     App.t = JSON.parse(JSON.stringify(TEMPLATES[k]));
+    App.weights = {}; // Clear old memory for new program
+    App.p = {};
     App.expanded.clear();
-    document.querySelector('.modal-overlay').remove();
-    r();
+    location.reload(); 
 }
 
 S.load();
