@@ -100,6 +100,49 @@ const TEMPLATES = {
             4: { n: "Mobility & Rest", rest: 1 }
         }
     },
+    executive_express: {
+        n: "20-Min Executive Express", w: 4, de: 0, dp: 100,
+        days: {
+            1: { n: "Full Body Burn", ex: [
+                {n:"DB Thrusters", s:3, r:"12", w:1},
+                {n:"DB Renegade Rows", s:3, r:"10", w:1},
+                {n:"BW Alternating Lunges", s:3, r:"20"},
+                {n:"DB Floor Press", s:3, r:"12", w:1}
+            ]},
+            2: { n: "Fast Walk / Recovery", rest: 1 }
+        }
+    },
+    bone_density: {
+        n: "Structural Strength (Bone Density)", w: 10, de: 3, dp: 65,
+        days: {
+            1: { n: "Lower Body Load", ex: [
+                {n:"DB Weighted Box Step-Ups", s:4, r:"8", w:1},
+                {n:"DB Sumo Squat", s:3, r:"10", w:1},
+                {n:"DB Stiff Leg Deadlift", s:3, r:"10", w:1}
+            ]},
+            2: { n: "Upper Body Load", ex: [
+                {n:"DB Standing Overhead Press", s:3, r:"8", w:1},
+                {n:"BW Incline Pushups", s:3, r:"12"},
+                {n:"DB Farmers Walk", s:3, r:"40 steps", w:1}
+            ]}
+        }
+    },
+    posture_fix: {
+        n: "Desk-Job Antidote (Posture/Glutes)", w: 8, de: 4, dp: 80,
+        days: {
+            1: { n: "Posterior Chain focus", ex: [
+                {n:"DB Glute Bridges", s:3, r:"15", w:1},
+                {n:"DB Reverse Flyes", s:3, r:"12", w:1},
+                {n:"BW Superman", s:3, r:"15"},
+                {n:"DB Goblet Squat", s:3, r:"12", w:1}
+            ]},
+            2: { n: "Core & Mobility", ex: [
+                {n:"Dead-Bugs", s:3, r:"12"},
+                {n:"Side Plank", s:2, r:"30s per side"},
+                {n:"Cat-Cow Stretch", s:2, r:"10"}
+            ]}
+        }
+    },
     muscle_gain: {
         n: "Mass Construction (DB Only)", w: 8, de: 4, dp: 60,
         days: {
@@ -116,28 +159,8 @@ const TEMPLATES = {
                 {n:"DB Calf Raises", s:4, r:"15", w:1}
             ]}
         }
-    },
-    functional_burn: {
-        n: "Metabolic Reset (Weight Loss)", w: 6, de: 0, dp: 100,
-        days: {
-            1: { n: "Full Body Circuit", ex: [
-                {n:"DB Thrusters", s:4, r:"15", w:1},
-                {n:"BW Mountain Climbers", s:4, r:"30s"},
-                {n:"DB Renegade Row", s:4, r:"12", w:1},
-                {n:"BW Burpees (Low Impact)", s:4, r:"10"}
-            ]},
-            2: { n: "Cardio: 30 Min Walk/Jog", rest: 1 }
-        }
     }
 };
-
-const EX_DB = {
-    "Push": ["DB Floor Press", "DB Overhead Press", "Push-ups", "Dips", "Lateral Raises"],
-    "Pull": ["DB Row", "DB Pull-over", "DB Curls", "Reverse Flyes"],
-    "Legs": ["Goblet Squat", "RDL", "Split Squat", "Calf Raise", "Glute Bridge"],
-    "Core": ["Plank", "Dead Bug", "Russian Twist", "Leg Raises"]
-};
-
 // --- RENDER LOGIC ---
 function r() {
     const root = document.getElementById('app');
@@ -382,3 +405,4 @@ r();
 </script>
 </body>
 </html>
+
