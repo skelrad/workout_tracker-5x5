@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>40+ Longevity Tracker</title>
+<title>Workout Tracker Pro v5</title>
 <style>
 :root{--accent:#3b82f6;--muted:#6b7280;--success:#10b981;--danger:#ef4444;--deload:#fbbf24;--bg:#f8fafc;--card:#fff;--border:#e2e8f0}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -11,52 +11,42 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:#
 .container{max-width:800px;margin:0 auto}
 .card{background:var(--card);padding:20px;border-radius:16px;box-shadow:0 4px 6px -1px rgba(0,0,0,.1);margin-bottom:16px}
 .btn{padding:10px 18px;border-radius:10px;border:none;font-weight:600;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:8px}
-.btn:active{transform:scale(.98)}
 .btn-primary{background:var(--accent);color:#fff}
 .btn-secondary{background:#f1f5f9;color:#475569}
 .btn-danger{background:var(--danger);color:#fff}
 .btn-sm{padding:6px 12px;font-size:.85rem}
-.input{padding:10px 12px;border:1px solid var(--border);border-radius:10px;width:100%;font-size:1rem;margin-bottom:8px}
+.input{padding:8px 12px;border:1px solid var(--border);border-radius:8px;width:100%;font-size:1rem}
 .nav{display:flex;gap:12px;margin-bottom:20px;background:#e2e8f0;padding:4px;border-radius:12px}
-.nav-btn{flex:1;padding:10px;border:none;font-weight:600;cursor:pointer;color:#64748b;border-radius:8px;background:none;transition:0.2s}
+.nav-btn{flex:1;padding:10px;border:none;font-weight:600;cursor:pointer;color:#64748b;border-radius:8px;background:none}
 .nav-btn.active{background:#fff;color:var(--accent);box-shadow:0 2px 4px rgba(0,0,0,.05)}
 .day-setup{border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;background:#fff}
 .ex-card{border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:8px;background:#f8fafc;cursor:grab}
 .ex-card:active{cursor:grabbing}
-.ex-card.dragging{opacity:0.5;background:#eff6ff;border:2px dashed var(--accent)}
 .week-btn{padding:10px;border-radius:10px;border:1px solid var(--border);background:#fff;font-weight:600;cursor:pointer;min-width:60px;text-align:center}
-.week-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
-.day-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
-.day-card{border:1px solid var(--border);border-radius:16px;padding:20px;cursor:pointer;background:#fff;transition:0.2s}
-.day-card.rest{background:#f1f5f9;opacity:0.8}
-.day-card:hover{border-color:var(--accent)}
-.prog-bar{height:6px;background:#e2e8f0;border-radius:3px;overflow:hidden;margin-top:8px}
-.prog-fill{height:100%;background:var(--success);transition:width .4s}
+.week-btn.active{background:var(--accent);color:#fff}
+.day-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
+.day-card{border:1px solid var(--border);border-radius:16px;padding:20px;cursor:pointer;background:#fff}
 .modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(15,23,42,0.6);display:flex;align-items:center;justify-content:center;z-index:1000;backdrop-filter:blur(4px)}
 .modal-content{background:#fff;border-radius:20px;padding:24px;max-width:500px;width:90%;max-height:85vh;overflow-y:auto}
-.template-item{border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;cursor:pointer;transition:0.2s}
-.template-item:hover{border-color:var(--accent);background:#f0f7ff}
-.hidden{display:none}
+.template-item{border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:8px;cursor:pointer}
+.row{display:flex;gap:8px;align-items:center;margin-top:8px}
+.label-small{font-size:0.75rem;color:var(--muted);font-weight:600;display:block;margin-bottom:2px}
 </style>
 </head>
 <body>
 <div class="container">
     <header style="margin-bottom:24px">
-        <h1 style="font-size:1.5rem;letter-spacing:-0.5px">Workout Tracker <span style="color:var(--accent)">Pro</span></h1>
-        <p style="color:var(--muted);font-size:0.9rem">Tailored Training & Longevity</p>
+        <h1 style="font-size:1.5rem">Workout Tracker <span style="color:var(--accent)">Pro</span></h1>
     </header>
-
     <div class="nav">
-        <button class="nav-btn active" id="setupTab">⚙️ Plan</button>
-        <button class="nav-btn" id="workoutTab">💪 Train</button>
+        <button class="nav-btn active" id="setupTab">⚙️ Setup</button>
+        <button class="nav-btn" id="workoutTab">💪 Workout</button>
     </div>
-
     <div id="app"></div>
 </div>
 
 <script>
-// --- STATE & STORAGE ---
-const KEY = 'WT_PRO_V4';
+const KEY = 'WT_PRO_V5';
 const App = {
     t: { n: 'My Program', w: 8, de: 4, dp: 70, days: {} },
     p: {}, cw: 1, view: 'setup', expanded: new Set(),
@@ -75,123 +65,47 @@ const S = {
         const w = localStorage.getItem(KEY + '_cw');
         if (t) App.t = JSON.parse(t);
         if (p) App.p = JSON.parse(p);
-        if (w) App.cw = parseInt(w);
+        if (w) App.cw = parseInt(w) || 1;
     }
 };
 
-// --- DATA: 40+ TRAINING TEMPLATES ---
 const TEMPLATES = {
-    longevity_40: {
-        n: "40+ Vitality (Health & Joint Focus)", w: 12, de: 4, dp: 70,
+    forty_plus_hypertrophy: {
+        n: "40+ Muscle & Vitality", w: 8, de: 4, dp: 70,
         days: {
-            1: { n: "Strength A: Push/Pull", ex: [
-                {n:"DB Goblet Squat (Tempo 3-0-1)", s:3, r:"10-12", w:1},
-                {n:"BW Push-ups (Perfect Form)", s:3, r:"AMRAP", a:1},
-                {n:"DB Single Arm Row", s:3, r:"10-12", w:1},
-                {n:"BW Plank", s:3, r:"45s"}
+            1: { n: "Full Body + Chest/Arms Focus", ex: [
+                {n:"DB Goblet Squats", s:3, r:"12", w:1},
+                {n:"BW Push-ups", s:3, r:"AMRAP", a:1},
+                {n:"DB Single Arm Rows", s:3, r:"10", w:1},
+                {n:"DB Floor Press", s:3, r:"12", w:1},
+                {n:"DB Hammer Curls", s:2, r:"12", w:1}
             ]},
-            2: { n: "Active Recovery: Zone 2 Cardio", rest: 1 },
-            3: { n: "Strength B: Hinge/Core", ex: [
-                {n:"DB Romanian Deadlift", s:3, r:"12-15", w:1},
-                {n:"DB Overhead Press", s:3, r:"8-10", w:1},
+            2: { n: "Zone 2 Cardio Recovery", rest: 1 },
+            3: { n: "Full Body + Back/Shoulder Focus", ex: [
+                {n:"DB Romanian Deadlift", s:3, r:"12", w:1},
+                {n:"DB Overhead Press", s:3, r:"10", w:1},
+                {n:"DB Chest-Supported Row", s:3, r:"12", w:1},
                 {n:"DB Lateral Raises", s:3, r:"15", w:1},
-                {n:"Bird-Dog", s:3, r:"12"}
+                {n:"DB Bicep Curls", s:2, r:"12", w:1}
             ]},
-            4: { n: "Mobility & Rest", rest: 1 }
-        }
-    },
-    executive_express: {
-        n: "20-Min Executive Express", w: 4, de: 0, dp: 100,
-        days: {
-            1: { n: "Full Body Burn", ex: [
+            4: { n: "Mobility & Walking", rest: 1 },
+            5: { n: "Full Body Capacity", ex: [
                 {n:"DB Thrusters", s:3, r:"12", w:1},
                 {n:"DB Renegade Rows", s:3, r:"10", w:1},
-                {n:"BW Alternating Lunges", s:3, r:"20"},
-                {n:"DB Floor Press", s:3, r:"12", w:1}
-            ]},
-            2: { n: "Fast Walk / Recovery", rest: 1 }
-        }
-    },
-    bone_density: {
-        n: "Structural Strength (Bone Density)", w: 10, de: 3, dp: 65,
-        days: {
-            1: { n: "Lower Body Load", ex: [
-                {n:"DB Weighted Box Step-Ups", s:4, r:"8", w:1},
-                {n:"DB Sumo Squat", s:3, r:"10", w:1},
-                {n:"DB Stiff Leg Deadlift", s:3, r:"10", w:1}
-            ]},
-            2: { n: "Upper Body Load", ex: [
-                {n:"DB Standing Overhead Press", s:3, r:"8", w:1},
-                {n:"BW Incline Pushups", s:3, r:"12"},
-                {n:"DB Farmers Walk", s:3, r:"40 steps", w:1}
-            ]}
-        }
-    },
-    posture_fix: {
-        n: "Desk-Job Antidote (Posture/Glutes)", w: 8, de: 4, dp: 80,
-        days: {
-            1: { n: "Posterior Chain focus", ex: [
-                {n:"DB Glute Bridges", s:3, r:"15", w:1},
-                {n:"DB Reverse Flyes", s:3, r:"12", w:1},
-                {n:"BW Superman", s:3, r:"15"},
-                {n:"DB Goblet Squat", s:3, r:"12", w:1}
-            ]},
-            2: { n: "Core & Mobility", ex: [
-                {n:"Dead-Bugs", s:3, r:"12"},
-                {n:"Side Plank", s:2, r:"30s per side"},
-                {n:"Cat-Cow Stretch", s:2, r:"10"}
-            ]}
-        }
-    },
-    forty_plus_hypertrophy: {
-        n: "40+ Muscle & Vitality (Chest/Back/Arms)", w: 8, de: 4, dp: 70,
-        days: {
-            1: { n: "Day 1: Full Body + Chest/Arms Focus", ex: [
-                {n:"DB Goblet Squats (Tempo 3-0-1)", s:3, r:"12", w:1},
-                {n:"BW Push-ups (Focus on Chest Squeeze)", s:3, r:"AMRAP", a:1},
-                {n:"DB Single Arm Rows (Back Focus)", s:3, r:"10", w:1},
-                {n:"DB Floor Press (Heavy Chest Focus)", s:3, r:"12", w:1},
-                {n:"DB Hammer Curls (Arm Thickness)", s:2, r:"12", w:1},
-                {n:"BW Plank", s:3, r:"45s"}
-            ]},
-            2: { n: "Day 2: Cardio & Mobility Recovery", rest: 1 },
-            3: { n: "Day 3: Full Body + Back/Shoulder Focus", ex: [
-                {n:"DB Romanian Deadlift (Hinge Health)", s:3, r:"12", w:1},
-                {n:"DB Overhead Press (Shoulder Width)", s:3, r:"10", w:1},
-                {n:"DB Chest-Supported Row (Back Thickness)", s:3, r:"12", w:1},
-                {n:"DB Lateral Raises (Shoulder Caps)", s:3, r:"15", w:1},
-                {n:"DB Bicep Curls (Arm Peak)", s:2, r:"12", w:1},
-                {n:"BW Dead-Bugs (Core Stability)", s:3, r:"12"}
-            ]},
-            4: { n: "Day 4: Active Recovery & Cardio", rest: 1 },
-            5: { n: "Day 5: Full Body Capacity + Arms/Chest", ex: [
-                {n:"DB Thrusters (Metabolic Finish)", s:3, r:"12", w:1},
-                {n:"DB Renegade Rows (Back & Core)", s:3, r:"10", w:1},
-                {n:"DB Incline Press (Upper Chest Focus)", s:3, r:"12", w:1},
-                {n:"DB Tricep Overhead Extension (Arm Size)", s:3, r:"12", w:1},
-                {n:"BW Mountain Climbers", s:3, r:"30s"}
-            ]}
-        }
-    },
-    muscle_gain: {
-        n: "Mass Construction (DB Only)", w: 8, de: 4, dp: 60,
-        days: {
-            1: { n: "Upper Body Hypertrophy", ex: [
-                {n:"DB Floor Press", s:4, r:"8-10", w:1},
-                {n:"DB Chest Supported Row", s:4, r:"10-12", w:1},
-                {n:"DB Arnold Press", s:3, r:"10", w:1},
-                {n:"DB Hammer Curls", s:3, r:"12", w:1}
-            ]},
-            2: { n: "Lower Body Hypertrophy", ex: [
-                {n:"DB Split Squat", s:3, r:"10", w:1},
-                {n:"DB Stiff Leg Deadlift", s:4, r:"10-12", w:1},
-                {n:"BW Walking Lunges", s:3, r:"20", a:1},
-                {n:"DB Calf Raises", s:4, r:"15", w:1}
+                {n:"DB Incline Press", s:3, r:"12", w:1},
+                {n:"DB Tricep Extensions", s:3, r:"12", w:1}
             ]}
         }
     }
 };
-// --- RENDER LOGIC ---
+
+const EX_LIB = {
+    "Chest/Push": ["DB Floor Press", "DB Overhead Press", "Push-ups", "DB Incline Press", "Lateral Raises"],
+    "Back/Pull": ["DB Row", "Single Arm Row", "Hammer Curls", "Bicep Curls", "Renegade Row"],
+    "Legs": ["Goblet Squat", "Romanian Deadlift", "Split Squat", "Step-ups", "Lunges"],
+    "Core": ["Plank", "Dead Bug", "Russian Twist", "Mountain Climbers"]
+};
+
 function r() {
     const root = document.getElementById('app');
     if (App.view === 'setup') rSetup(root);
@@ -201,26 +115,18 @@ function r() {
 
 function rSetup(root) {
     const daysArr = Object.keys(App.t.days).map(Number).sort((a,b)=>a-b);
-    
     root.innerHTML = `
         <div class="card">
-            <div style="display:flex;justify-content:space-between;margin-bottom:16px">
-                <h3>Program Settings</h3>
-                <button class="btn btn-secondary btn-sm" onclick="showTemplates()">📋 Templates</button>
+            <button class="btn btn-secondary btn-sm" onclick="showTemplates()" style="float:right">📋 Templates</button>
+            <h3>Program Info</h3>
+            <div style="margin-top:12px">
+                <label class="label-small">Program Name</label>
+                <input class="input" value="${App.t.n}" oninput="App.t.n=this.value">
             </div>
-            <label class="muted">Program Name</label>
-            <input class="input" value="${App.t.n}" oninput="App.t.n=this.value">
-            
-            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:10px">
-                <div><small>Weeks</small><input type="number" class="input" value="${App.t.w}" onchange="App.t.w=+this.value"></div>
-                <div><small>Deload Every</small><input type="number" class="input" value="${App.t.de}" onchange="App.t.de=+this.value"></div>
-                <div><small>Deload %</small><input type="number" class="input" value="${App.t.dp}" onchange="App.t.dp=+this.value"></div>
-            </div>
-            <button class="btn btn-danger btn-sm" onclick="resetAll()" style="margin-top:10px">Reset Data</button>
         </div>
 
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-            <h2>Training Days</h2>
+            <h2>Days</h2>
             <button class="btn btn-primary btn-sm" onclick="addDay()">+ Add Day</button>
         </div>
 
@@ -230,36 +136,43 @@ function rSetup(root) {
             return `
             <div class="day-setup">
                 <div style="display:flex;justify-content:space-between;cursor:pointer" onclick="toggleExpand(${d})">
-                    <strong>Day ${d}: ${day.n || 'Unnamed'} ${day.rest ? '(Rest)' : ''}</strong>
+                    <strong>Day ${d}: ${day.n || 'Rest'}</strong>
                     <span>${isOpen ? '▲' : '▼'}</span>
                 </div>
                 
                 ${isOpen ? `
                     <div style="margin-top:15px">
-                        <input class="input" placeholder="Day Name (e.g. Upper Body)" value="${day.n}" onchange="App.t.days[${d}].n=this.value; r()">
-                        <div style="margin-bottom:10px">
-                            <label><input type="checkbox" ${day.rest?'checked':''} onchange="App.t.days[${d}].rest=this.checked; r()"> Rest Day</label>
-                        </div>
+                        <label class="label-small">Day Name</label>
+                        <input class="input" value="${day.n}" oninput="App.t.days[${d}].n=this.value">
+                        <label style="display:block;margin:10px 0"><input type="checkbox" ${day.rest?'checked':''} onchange="App.t.days[${d}].rest=this.checked; r()"> Rest Day</label>
                         
                         ${!day.rest ? `
-                            <div class="ex-list" ondragover="event.preventDefault()" ondrop="dropEx(event, ${d})">
+                            <div ondragover="event.preventDefault()" ondrop="dropEx(event, ${d})">
                                 ${(day.ex || []).map((e, i) => `
-                                    <div class="ex-card" draggable="true" 
-                                         ondragstart="dragEx(event, ${d}, ${i})" 
-                                         ondragend="this.classList.remove('dragging')">
-                                        <div style="display:flex;justify-content:space-between;align-items:center">
-                                            <div>
-                                                <strong>${e.n}</strong><br>
-                                                <small>${e.s} sets • ${e.r} reps</small>
-                                            </div>
+                                    <div class="ex-card" draggable="true" ondragstart="dragEx(event, ${d}, ${i})">
+                                        <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+                                            <input class="input" style="font-weight:bold; border:none; padding:2px; background:transparent" value="${e.n}" oninput="App.t.days[${d}].ex[${i}].n=this.value">
                                             <button class="btn btn-danger btn-sm" onclick="delEx(${d}, ${i})">✕</button>
+                                        </div>
+                                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px">
+                                            <div>
+                                                <label class="label-small">Sets</label>
+                                                <input type="number" class="input" value="${e.s}" oninput="App.t.days[${d}].ex[${i}].s=parseInt(this.value)||0">
+                                            </div>
+                                            <div>
+                                                <label class="label-small">Reps</label>
+                                                <input class="input" value="${e.r}" oninput="App.t.days[${d}].ex[${i}].r=this.value">
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <label style="font-size:0.8rem"><input type="checkbox" ${e.w?'checked':''} onchange="App.t.days[${d}].ex[${i}].w=this.checked"> Track Weight</label>
+                                            <label style="font-size:0.8rem"><input type="checkbox" ${e.a?'checked':''} onchange="App.t.days[${d}].ex[${i}].a=this.checked"> AMRAP</label>
                                         </div>
                                     </div>
                                 `).join('')}
-                                <button class="btn btn-secondary btn-sm" style="width:100%" onclick="showExLibrary(${d})">+ Add Exercise</button>
+                                <button class="btn btn-secondary btn-sm" style="width:100%" onclick="showExLib(${d})">+ Add Exercise</button>
                             </div>
                         ` : ''}
-                        
                         <button class="btn btn-danger btn-sm" style="margin-top:10px; width:100%" onclick="delDay(${d})">Delete Day</button>
                     </div>
                 ` : ''}
@@ -271,126 +184,75 @@ function rSetup(root) {
 
 function rWorkout(root) {
     const daysArr = Object.keys(App.t.days).map(Number).sort((a,b)=>a-b);
-    const weeks = Array.from({length: App.t.w}, (_, i) => i + 1);
-
     root.innerHTML = `
         <div class="card">
             <h3>Week ${App.cw}</h3>
-            <div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:10px;margin-top:12px">
-                ${weeks.map(w => `<div class="week-btn ${w===App.cw?'active':''}" onclick="App.cw=${w};r()">${w}</div>`).join('')}
+            <div style="display:flex;gap:8px;overflow-x:auto;padding-top:12px">
+                ${Array.from({length:App.t.w},(_,i)=>i+1).map(w=>`
+                    <div class="week-btn ${w===App.cw?'active':''}" onclick="App.cw=${w};r()">${w}</div>
+                `).join('')}
             </div>
         </div>
-
         <div class="day-grid">
-            ${daysArr.map(d => {
-                const day = App.t.days[d];
-                return `
-                    <div class="day-card ${day.rest?'rest':''}" onclick="startWorkout(${d})">
-                        <h4>Day ${d}</h4>
-                        <p style="font-size:0.9rem; color:var(--muted)">${day.n}</p>
-                        ${day.rest ? '<small>Rest/Recovery</small>' : `
-                            <div class="prog-bar"><div class="prog-fill" style="width:${getCompletion(App.cw, d)}%"></div></div>
-                        `}
-                    </div>
-                `;
-            }).join('')}
+            ${daysArr.map(d => `
+                <div class="day-card" onclick="alert('Starting Day ${d}')">
+                    <h4>Day ${d}</h4>
+                    <p style="color:var(--muted)">${App.t.days[d].n || (App.t.days[d].rest ? 'Rest' : 'Workout')}</p>
+                </div>
+            `).join('')}
         </div>
     `;
 }
 
-// --- LOGIC FUNCTIONS ---
 function toggleExpand(d) {
     const id = Number(d);
-    if (App.expanded.has(id)) App.expanded.delete(id);
-    else App.expanded.add(id);
+    App.expanded.has(id) ? App.expanded.delete(id) : App.expanded.add(id);
     r();
 }
 
 function addDay() {
     const newId = Math.max(0, ...Object.keys(App.t.days).map(Number)) + 1;
-    App.t.days[newId] = { n: 'New Day', ex: [], rest: false };
+    App.t.days[newId] = { n: 'New Workout', ex: [], rest: false };
     App.expanded.add(newId);
     r();
 }
 
-function delDay(d) {
-    if(confirm('Delete day?')) {
-        delete App.t.days[d];
-        r();
-    }
+function delDay(d) { if(confirm('Delete?')) { delete App.t.days[d]; r(); } }
+
+function showExLib(d) {
+    const ov = document.createElement('div');
+    ov.className = 'modal-overlay';
+    ov.innerHTML = `<div class="modal-content"><h3>Exercises</h3>${Object.keys(EX_LIB).map(c=>`
+        <div style="margin-top:10px;font-weight:bold">${c}</div>
+        ${EX_LIB[c].map(e=>`<div class="template-item" onclick="addExToDay(${d},'${e}')">${e}</div>`).join('')}
+    `).join('')}<button class="btn btn-secondary" style="width:100%" onclick="this.closest('.modal-overlay').remove()">Close</button></div>`;
+    document.body.appendChild(ov);
 }
 
-function showExLibrary(d) {
-    const overlay = document.createElement('div');
-    overlay.className = 'modal-overlay';
-    overlay.innerHTML = `
-        <div class="modal-content">
-            <h3>Library</h3>
-            ${Object.keys(EX_DB).map(cat => `
-                <div style="margin-top:15px"><strong>${cat}</strong></div>
-                ${EX_DB[cat].map(e => `
-                    <div class="template-item" onclick="addExToDay(${d}, '${e}')">${e}</div>
-                `).join('')}
-            `).join('')}
-            <button class="btn btn-secondary" style="width:100%" onclick="this.closest('.modal-overlay').remove()">Close</button>
-        </div>
-    `;
-    document.body.appendChild(overlay);
-}
-
-function addExToDay(d, name) {
-    App.t.days[d].ex.push({n: name, s: 3, r: "10-12", w: 1});
+function addExToDay(d, n) {
+    App.t.days[d].ex.push({n, s:3, r:"10", w:1, a:0});
     document.querySelector('.modal-overlay').remove();
     r();
 }
 
-function delEx(d, i) {
-    App.t.days[d].ex.splice(i, 1);
+function delEx(d, i) { App.t.days[d].ex.splice(i,1); r(); }
+
+function dragEx(e, d, i) { App.draggingDay = d; App.draggingIdx = i; }
+function dropEx(e, d) {
+    if (App.draggingDay !== d) return;
+    const items = App.t.days[d].ex;
+    const moving = items.splice(App.draggingIdx, 1)[0];
+    items.push(moving); // Simplistic drop-at-end for this snippet
     r();
 }
 
-// --- DRAG & DROP ENGINE ---
-function dragEx(e, day, idx) {
-    App.draggingDay = day;
-    App.draggingIdx = idx;
-    e.target.classList.add('dragging');
-}
-
-function dropEx(e, day) {
-    e.preventDefault();
-    if (App.draggingDay !== day) return;
-    
-    const dayData = App.t.days[day];
-    const item = dayData.ex.splice(App.draggingIdx, 1)[0];
-    
-    // Simple logic to find insert position based on cursor
-    const list = e.currentTarget;
-    const cards = [...list.querySelectorAll('.ex-card:not(.dragging)')];
-    const nextCard = cards.find(c => e.clientY < c.getBoundingClientRect().top + c.offsetHeight/2);
-    
-    const newIdx = nextCard ? dayData.ex.indexOf(dayData.ex.find(ex => ex.n === nextCard.querySelector('strong').innerText)) : dayData.ex.length;
-    
-    dayData.ex.splice(newIdx, 0, item);
-    r();
-}
-
-// --- TEMPLATES ---
 function showTemplates() {
-    const overlay = document.createElement('div');
-    overlay.className = 'modal-overlay';
-    overlay.innerHTML = `
-        <div class="modal-content">
-            <h3>40+ Fitness Templates</h3>
-            ${Object.keys(TEMPLATES).map(k => `
-                <div class="template-item" onclick="loadT('${k}')">
-                    <strong>${TEMPLATES[k].n}</strong><br>
-                    <small>${TEMPLATES[k].w} Weeks • DB & BW Focused</small>
-                </div>
-            `).join('')}
-            <button class="btn btn-secondary" style="width:100%" onclick="this.closest('.modal-overlay').remove()">Cancel</button>
-        </div>
-    `;
-    document.body.appendChild(overlay);
+    const ov = document.createElement('div');
+    ov.className = 'modal-overlay';
+    ov.innerHTML = `<div class="modal-content"><h3>Load Template</h3>${Object.keys(TEMPLATES).map(k=>`
+        <div class="template-item" onclick="loadT('${k}')"><strong>${TEMPLATES[k].n}</strong></div>
+    `).join('')}<button class="btn btn-secondary" style="width:100%" onclick="this.closest('.modal-overlay').remove()">Cancel</button></div>`;
+    document.body.appendChild(ov);
 }
 
 function loadT(k) {
@@ -402,38 +264,11 @@ function loadT(k) {
     }
 }
 
-function getCompletion(w, d) {
-    // Basic placeholder for workout logic
-    return 0;
-}
-
-function startWorkout(d) {
-    if (App.t.days[d].rest) return alert("Enjoy your rest day! Recovery is where muscle grows.");
-    alert("Workout UI would open here for Day " + d + " (similar to your previous logic, but now with corrected IDs!)");
-}
-
-function resetAll() {
-    if(confirm('Full Wipe?')) { localStorage.clear(); location.reload(); }
-}
-
-// --- INIT ---
-document.getElementById('setupTab').onclick = (e) => {
-    App.view = 'setup';
-    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-    e.target.classList.add('active');
-    r();
-};
-document.getElementById('workoutTab').onclick = (e) => {
-    App.view = 'workout';
-    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-    e.target.classList.add('active');
-    r();
-};
+document.getElementById('setupTab').onclick = () => { App.view = 'setup'; setupTab.classList.add('active'); workoutTab.classList.remove('active'); r(); };
+document.getElementById('workoutTab').onclick = () => { App.view = 'workout'; workoutTab.classList.add('active'); setupTab.classList.remove('active'); r(); };
 
 S.load();
 r();
 </script>
 </body>
 </html>
-
-
