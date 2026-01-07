@@ -55,8 +55,9 @@ let App = {
     expanded: new Set(),
     activeDay: null,
     t: { n: 'My Program', w: 8, days: {} },
-    p: {}, 
-    weights: {} 
+    p: {},         // set pass/fail state
+    weights: {},   // per-exercise next-session weights
+    reps: {}       // 🔢 per-exercise next-session reps
 };
 
 const TEMPLATES = {
@@ -100,12 +101,27 @@ const TEMPLATES = {
 };
 
 const S = {
-    save() { localStorage.setItem(KEY, JSON.stringify({t: App.t, p: App.p, cw: App.cw, weights: App.weights})); },
+    save() {
+        localStorage.setItem(
+            KEY,
+            JSON.stringify({
+                t: App.t,
+                p: App.p,
+                cw: App.cw,
+                weights: App.weights,
+                reps: App.reps   // 🧠 persist reps
+            })
+        );
+    },
     load() {
         const data = localStorage.getItem(KEY);
         if (data) {
             const d = JSON.parse(data);
-            App.t = d.t || App.t; App.p = d.p || {}; App.cw = d.cw || 1; App.weights = d.weights || {};
+            App.t       = d.t       || App.t;
+            App.p       = d.p       || {};
+            App.cw      = d.cw      || 1;
+            App.weights = d.weights || {};
+            App.reps    = d.reps    || {};
         }
     }
 };
@@ -135,7 +151,7 @@ function getDayProgress(dIdx, weekOverride) {
     const w = weekOverride || App.cw;
     if (day.rest) return 100;
     let total = 0, done = 0;
-    day.ex.forEach((e, exIdx) => {
+    (day.ex || []).forEach((e, exIdx) => {
         total += e.s;
         for (let s = 0; s < e.s; s++) if (App.p[`${w}-${dIdx}-${exIdx}-${s}`]) done++;
     });
@@ -202,11 +218,22 @@ function rActiveWorkout(root) {
     <h2 style="margin:15px 0">${day.n}</h2>
     ${(day.ex||[]).map((e, exIdx) => {
         const curWeight = App.weights[e.n] !== undefined ? App.weights[e.n] : e.w;
+        const baseReps = parseInt(e.r, 10);
+        const hasNumericReps = !isNaN(baseReps);
+        const curReps = hasNumericReps
+            ? (App.reps[e.n] !== undefined ? App.reps[e.n] : baseReps)
+            : null;
+
         return `
         <div class="card">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
                 <strong>${e.n}</strong>
                 <span style="color:var(--accent);font-weight:bold;font-size:1.1rem">${curWeight} lbs</span>
+            </div>
+            <div style="margin-bottom:8px">
+                <small style="color:var(--muted);font-size:0.8rem">
+                    Reps: <strong>${hasNumericReps ? curReps : e.r}</strong>
+                </small>
             </div>
             <div style="display:flex;gap:8px;margin-bottom:15px">
                 ${Array.from({length:e.s}, (_, sIdx) => {
@@ -217,10 +244,22 @@ function rActiveWorkout(root) {
             </div>
             <div class="weight-ctrl">
                 <button class="btn btn-secondary" onclick="adjWeight('${e.n}', -5)">-</button>
-                <div style="flex:1;text-align:center"><small style="display:block;font-size:0.7rem;color:var(--muted)">ADJUST NEXT</small><strong>5 lbs</strong></div>
+                <div style="flex:1;text-align:center"><small style="display:block;font-size:0.7rem;color:var(--muted)">ADJUST NEXT WEIGHT</small><strong>5 lbs</strong></div>
                 <button class="btn btn-secondary" onclick="adjWeight('${e.n}', 5)">+</button>
                 <input type="number" class="input" style="width:80px" placeholder="Manual" onchange="adjWeight('${e.n}', parseFloat(this.value), true)">
             </div>
+            ${hasNumericReps ? `
+            <div class="weight-ctrl">
+                <button class="btn btn-secondary btn-sm" onclick="adjReps('${e.n}', -2)">-2</button>
+                <button class="btn btn-secondary btn-sm" onclick="adjReps('${e.n}', -1)">-1</button>
+                <div style="flex:1;text-align:center">
+                    <small style="display:block;font-size:0.7rem;color:var(--muted)">ADJUST NEXT REPS</small>
+                    <strong>${curReps}</strong>
+                </div>
+                <button class="btn btn-secondary btn-sm" onclick="adjReps('${e.n}', 1)">+1</button>
+                <button class="btn btn-secondary btn-sm" onclick="adjReps('${e.n}', 2)">+2</button>
+                <input type="number" class="input" style="width:80px" placeholder="Manual" onchange="adjReps('${e.n}', parseFloat(this.value), true)">
+            </div>` : ''}
         </div>`;
     }).join('')}
     <button class="btn btn-primary" style="width:100%;padding:15px" onclick="App.activeDay=null;r()">Finish Session</button>`;
@@ -235,7 +274,19 @@ function markSet(exIdx, sIdx) {
 
 function adjWeight(exName, val, isManual = false) {
     const base = App.weights[exName] !== undefined ? App.weights[exName] : findInTemplate(exName);
-    App.weights[exName] = isManual ? val : (base + val);
+    const next = isManual ? val : (base + val);
+    if (isNaN(next)) return;
+    App.weights[exName] = next;
+    r();
+}
+
+function adjReps(exName, val, isManual = false) {
+    const base = App.reps[exName] !== undefined ? App.reps[exName] : findBaseReps(exName);
+    if (base == null || isNaN(base)) return;
+    let next = isManual ? val : (base + val);
+    if (isNaN(next)) return;
+    if (next < 1) next = 1; // keep reps sane
+    App.reps[exName] = Math.round(next);
     r();
 }
 
@@ -245,6 +296,17 @@ function findInTemplate(name) {
         if (found) return found.w;
     }
     return 0;
+}
+
+function findBaseReps(name) {
+    for (let d in App.t.days) {
+        const ex = App.t.days[d].ex?.find(e => e.n === name);
+        if (ex) {
+            const parsed = parseInt(ex.r, 10);
+            if (!isNaN(parsed)) return parsed;
+        }
+    }
+    return null;
 }
 
 function addDay() {
@@ -268,7 +330,10 @@ function showTemplates() {
 
 function loadT(k) {
     App.t = JSON.parse(JSON.stringify(TEMPLATES[k]));
-    App.weights = {}; App.p = {}; App.expanded.clear();
+    App.weights = {};
+    App.reps = {};
+    App.p = {};
+    App.expanded.clear();
     r();
     document.querySelector('.modal-overlay').remove();
 }
